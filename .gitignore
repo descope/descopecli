@@ -1,0 +1,38 @@
+# Mac OS X files
+.DS_Store
+
+# IDE files
+.idea/
+.vscode/
+.history/
+
+# Binaries for programs and plugins
+*.exe
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Test binary, build with `go test -c`
+*.test
+
+# General purpose test files/folder
+local_test.go
+.test/
+
+# Go coverage output
+*.out
+coverage.html
+
+# Go build outputs
+__debug_bin
+outputs/
+
+# Go workspace file
+go.work
+
+# Dependency directories
+vendor/
+
+# Configuration environment files
+*.env

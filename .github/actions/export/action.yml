@@ -1,0 +1,105 @@
+name: Export Project
+
+description: 'Export settings and configurations from a Descope project'
+
+author: 'Descope'
+
+branding:
+  icon: 'database'
+  color: 'green'
+
+inputs:
+  project_id:
+    description: 'The id of the Descope project to export from'
+    required: true
+  management_key:
+    description: 'The management key for the Descope project'
+    required: true
+  files_path:
+    description: 'The path to the export files (i.e., the directory containing the environment.json file)'
+    default: '.'
+  descopecli_version:
+    description: 'The version of the descopecli tool to use'
+    default: 'v0.1.0'
+  descope_base_url:
+    description: 'The base URL used to communicate with Descope servers (for troubleshooting purposes)'
+
+outputs:
+  has_changes:
+    description: 'Whether the export introduced any new changes'
+    value: ${{ steps.check.outputs.has_changes }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Setup Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.21'
+        cache: false
+
+    - name: Cache Descopecli
+      id: cache-cli
+      uses: actions/cache@v4
+      with:
+        path: ~/go/bin
+        key: ${{ runner.os }}-descopecli-${{ inputs.descopecli_version }}
+
+    - name: Install Descopecli
+      if: steps.cache-cli.outputs.cache-hit != 'true'
+      shell: bash
+      run: go install github.com/descope/descopecli@main
+
+    - name: Validate State
+      shell: bash
+      run: |
+        echo "Validating action state"
+        if [ -z "${{ inputs.project_id }}" ]; then
+          echo "The project_id input is required for this action to run"
+          exit 1
+        fi
+        MANAGEMENT_KEY="$(jq -r '.inputs.management_key' $GITHUB_EVENT_PATH)"
+        echo ::add-mask::$MANAGEMENT_KEY
+        if [ -z "$MANAGEMENT_KEY" ]; then
+          echo "The management_key input is required for this action to run"
+          exit 1
+        fi
+        if [ -z "${{ inputs.files_path }}" ]; then
+          echo "The files_path input is cannot be an empty string"
+          exit 1
+        fi
+        mkdir -p "${{ inputs.files_path }}"
+        if [ "$?" != "0" ]; then
+          echo "The files_path input must be a valid path: ${{ inputs.files_path }}"
+          exit 1
+        fi
+        if ! [ -d ".git" ]; then
+          echo "No git repository found, make sure the checkout action was called"
+          exit 1
+        fi
+
+    - name: Export Project
+      shell: bash
+      env:
+        DESCOPE_MANAGEMENT_KEY: ${{ inputs.management_key }}
+        DESCOPE_BASE_URL: ${{ inputs.descope_base_url }}
+      run: |
+        echo "Exporting project"
+        rm -rf "${{ inputs.files_path }}"
+        mkdir -p "${{ inputs.files_path }}"
+        descopecli project export "${{ inputs.project_id }}" --path "${{ inputs.files_path }}"
+        if [ "$?" != "0" ]; then
+          echo "The export operation failed"
+          exit 1
+        fi
+
+    - name: Check For Changes
+      id: check
+      shell: bash
+      run: |
+        echo "Checking if any files were changed"
+        if [ -n "$(git status --porcelain=v1 2> /dev/null)" ]; then
+          echo "has_changes=true" >> $GITHUB_OUTPUT
+        else
+          echo "has_changes=false" >> $GITHUB_OUTPUT
+        fi
