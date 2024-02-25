@@ -38,7 +38,7 @@ func Load(args []string) error {
 	return err
 }
 
-func LoadAll(args []string) error {
+func LoadAll(_ []string) error {
 	res, err := shared.Descope.Management.Tenant().LoadAll(context.Background())
 	if err == nil {
 		if len(res) == 1 {
