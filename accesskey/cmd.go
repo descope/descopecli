@@ -12,8 +12,6 @@ var Flags struct {
 	Tenants []string
 }
 
-const GithubKey = "ghp_f12345123451234512345123451234512345"
-
 func AddCommands(parent *cobra.Command, group *cobra.Group) {
 	accessKey := shared.MakeGroupCommand(group, "access-key", "Commands for creating and managing access keys")
 
