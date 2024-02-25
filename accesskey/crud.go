@@ -46,7 +46,7 @@ func Load(args []string) error {
 	return nil
 }
 
-func LoadAll(args []string) error {
+func LoadAll(_ []string) error {
 	res, err := shared.Descope.Management.AccessKey().SearchAll(context.Background(), nil)
 	if err != nil {
 		return err

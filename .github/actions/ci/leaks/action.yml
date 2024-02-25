@@ -1,0 +1,19 @@
+name: Check Leaks
+
+description: Check Leaks
+
+inputs:
+  gitleaks_license:
+    description: 'A gitleaks-action license'
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Check Leaks
+      uses: gitleaks/gitleaks-action@v2
+      env:
+        GITLEAKS_LICENSE: ${{ inputs.gitleaks_license }}
+        GITLEAKS_CONFIG: .github/actions/ci/leaks/gitleaks.toml
+        GITLEAKS_ENABLE_SUMMARY: false
+        GITLEAKS_ENABLE_UPLOAD_ARTIFACT: false

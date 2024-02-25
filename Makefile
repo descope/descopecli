@@ -1,7 +1,7 @@
 .DEFAULT_GOAL := help
 
-.PHONY:  help clean build install ensure-go
-.SILENT: help clean build install ensure-go
+.PHONY:  help clean build install lint ensure-linter ensure-gitleaks ensure-go
+.SILENT: help clean build install lint ensure-linter ensure-gitleaks ensure-go
 
 help: Makefile ## this help message
 	grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
@@ -16,6 +16,21 @@ build: ensure-go ## builds the descopecli command line tool
 install: ensure-go ## installs the descopecli command line tool to $GOPATH/bin
 	go install .
 	echo The $$'\e[33m'descopecli$$'\e[0m' tool has been installed to $$GOPATH/bin
+
+lint: ensure-linter ensure-gitleaks ## runs the golangci-lint linter
+	golangci-lint --config .github/actions/ci/lint/golangci.yml run
+	gitleaks protect --redact -v -c .github/actions/ci/leaks/gitleaks.toml
+	gitleaks detect --redact -v -c .github/actions/ci/leaks/gitleaks.toml
+
+ensure-linter: ensure-go
+	if ! command -v golangci-lint &> /dev/null; then \
+		go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.55.2 ;\
+	fi
+
+ensure-gitleaks:
+	if ! command -v gitleaks &> /dev/null; then \
+		brew install gitleaks ;\
+	fi
 
 ensure-go:
 	if ! command -v go &> /dev/null; then \

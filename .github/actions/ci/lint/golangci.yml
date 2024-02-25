@@ -1,0 +1,65 @@
+run:
+  timeout: 3m
+
+linters-settings:
+  gofmt:
+    simplify: false
+  depguard:
+    rules:
+      packages-with-error-message:
+        deny:
+          - pkg: io/ioutil
+            desc: "replaced by io and os packages since Go 1.16: https://tip.golang.org/doc/go1.16#ioutil"
+  revive:
+    rules:
+      - name: defer
+        arguments: [["loop", "return"]]
+      - name: blank-imports
+      - name: context-as-argument
+      - name: dot-imports
+      - name: error-return
+      - name: error-strings
+      - name: error-naming
+      - name: increment-decrement
+      - name: range
+      - name: receiver-naming
+      - name: indent-error-flow
+      - name: if-return
+      - name: superfluous-else
+      - name: unreachable-code
+      - name: unused-parameter
+      - name: unconditional-recursion
+      - name: waitgroup-by-value
+      - name: duplicated-imports
+      - name: unreachable-code
+      - name: context-keys-type # Might cause slowness in lint
+      - name: time-naming # Might cause slowness in lint
+      - name: var-declaration # Might cause slowness in lint
+      - name: errorf # Might cause slowness in lint
+
+linters:
+  enable:
+    - revive
+    - govet
+    - gofmt
+    - goimports
+    - godox
+    - depguard
+  disable-all: true
+
+issues:
+  # Independently from option `exclude` we use default exclude patterns,
+  # it can be disabled by this option. To list all
+  # excluded by default patterns execute `golangci-lint run --help`.
+  # Default value for this option is true.
+  exclude-use-default: false
+
+  # Maximum issues count per one linter.
+  # Set to 0 to disable.
+  # Default: 50
+  max-issues-per-linter: 0
+
+  # Maximum count of issues with the same text.
+  # Set to 0 to disable.
+  # Default: 3
+  max-same-issues: 0
