@@ -1,0 +1,24 @@
+name: Run Linter
+
+description: Run Linter
+
+inputs:
+  go_version:
+    description: 'Version of Go to use for this build'
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Setup Repo
+      uses: ./.github/actions/ci/setup
+      with:
+        go_version: ${{ inputs.go_version }}
+
+    - name: Run Linter
+      uses: golangci/golangci-lint-action@v4
+      with:
+        version: v1.55.2
+        skip-pkg-cache: true
+        skip-build-cache: true
+        args: --config=.github/actions/ci/lint/golangci.yml

@@ -33,7 +33,7 @@ func Create(args []string) error {
 	return nil
 }
 
-func Delete(args []string) error {
+func Delete(_ []string) error {
 	if (Flags.LoginID == "" && Flags.UserID == "") || (Flags.LoginID != "" && Flags.UserID != "") {
 		return errors.New("this command requires 1 flag to identify the user")
 	}
@@ -43,7 +43,7 @@ func Delete(args []string) error {
 	return shared.Descope.Management.User().DeleteByUserID(context.Background(), Flags.UserID)
 }
 
-func Load(args []string) error {
+func Load(_ []string) error {
 	if (Flags.LoginID == "" && Flags.UserID == "") || (Flags.LoginID != "" && Flags.UserID != "") {
 		return errors.New("this command requires 1 flag to identify the user")
 	}
@@ -65,7 +65,7 @@ func Load(args []string) error {
 	return nil
 }
 
-func LoadAll(args []string) error {
+func LoadAll(_ []string) error {
 	res, err := shared.Descope.Management.User().SearchAll(context.Background(), &descope.UserSearchOptions{Limit: int32(Flags.Limit), Page: int32(Flags.Page)})
 	if err != nil {
 		return err
