@@ -15,6 +15,9 @@ inputs:
   management_key:
     description: 'The management key for the Descope project'
     required: true
+  secrets:
+    description: 'An optional JSON value with additional secrets to inject into the import data'
+    default: '[]'
   files_path:
     description: 'The path to the import files (i.e., the directory containing the environment.json file)'
     default: '.'
@@ -23,6 +26,11 @@ inputs:
     default: 'v0.1.0'
   descope_base_url:
     description: 'The base URL used to communicate with Descope servers (for troubleshooting purposes)'
+
+outputs:
+  missing_secrets:
+    description: 'Whether the import was missing any secrets'
+    value: ${{ steps.import.outputs.missing_secrets }}
 
 runs:
   using: 'composite'
@@ -43,7 +51,7 @@ runs:
     - name: Install Descopecli
       if: steps.cache-action.outputs.cache-hit != 'true'
       shell: bash
-      run: go install github.com/descope/descopecli@main
+      run: go install github.com/descope/descopecli@validate-import
 
     - name: Validate State
       shell: bash
@@ -69,10 +77,21 @@ runs:
         fi
 
     - name: Import Project
+      id: import
       shell: bash
       env:
         DESCOPE_MANAGEMENT_KEY: ${{ inputs.management_key }}
         DESCOPE_BASE_URL: ${{ inputs.descope_base_url }}
       run: |
         echo "Importing project"
-        descopecli project import "${{ inputs.project_id }}" --path "${{ inputs.files_path }}"
+        SECRETS_FILE="$(mktemp)"
+        jq -r '.inputs.secrets' $GITHUB_EVENT_PATH > "$SECRETS_FILE"
+        descopecli project validate "${{ inputs.project_id }}" --secrets "$SECRETS_FILE" --path "${{ inputs.files_path }}"
+        result=$?
+        if [ "$result" = "2" ]; then
+          echo "missing_secrets=$(cat $SECRETS_FILE)" >> $GITHUB_OUTPUT
+          exit 2
+        elif [ "$result" != 0 ]; then
+          exit 1
+        fi
+        descopecli project import "${{ inputs.project_id }}" --secrets "$SECRETS_FILE" --path "${{ inputs.files_path }}"

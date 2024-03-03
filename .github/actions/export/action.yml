@@ -48,7 +48,7 @@ runs:
     - name: Install Descopecli
       if: steps.cache-cli.outputs.cache-hit != 'true'
       shell: bash
-      run: go install github.com/descope/descopecli@main
+      run: go install github.com/descope/descopecli@validate-import
 
     - name: Validate State
       shell: bash

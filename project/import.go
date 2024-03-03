@@ -14,6 +14,14 @@ import (
 )
 
 func Import(args []string) error {
+	return run(args, false)
+}
+
+func Validate(args []string) error {
+	return run(args, true)
+}
+
+func run(args []string, validate bool) error {
 	root := Flags.Path
 	if root == "" {
 		root = "env-" + args[0]
@@ -25,7 +33,7 @@ func Import(args []string) error {
 	}
 
 	im := importer{root: root}
-	return im.Import()
+	return im.Run(validate)
 }
 
 type importer struct {
@@ -33,7 +41,60 @@ type importer struct {
 	files map[string]any
 }
 
-func (im *importer) Import() error {
+func (im *importer) Run(validate bool) error {
+	fmt.Println("* Reading files...")
+
+	im.files = map[string]any{}
+	if err := im.readFiles(im.root); err != nil {
+		return err
+	}
+
+	if Flags.Debug {
+		WriteDebugFile(im.root, "debug/import.log", im.files)
+	}
+
+	secrets := []map[string]any{}
+	if Flags.Secrets != "" {
+		fmt.Println("* Reading secrets...")
+		bytes, err := os.ReadFile(Flags.Secrets)
+		if err != nil {
+			return fmt.Errorf("failed to read import file %s: %w", Flags.Secrets, err)
+		}
+		if err = json.Unmarshal(bytes, &secrets); err != nil {
+			return fmt.Errorf("failed to convert import json file %s: %w", Flags.Secrets, err)
+		}
+	}
+
+	if validate {
+		fmt.Println("* Validating import...")
+		secrets, err := shared.Descope.Management.Project().ValidateImport(context.Background(), im.files, secrets)
+		if err != nil {
+			return fmt.Errorf("failed to import project: %w", err)
+		}
+		if len(secrets) == 0 {
+			fmt.Println("* Validation passed")
+		} else {
+			fmt.Println("* Validation failed")
+			if Flags.Secrets == "" {
+				return errors.New("validation failed but no secrets path was specified")
+			}
+			b, _ := json.MarshalIndent(secrets, "", "  ")
+			b = append(b, '\n')
+			os.WriteFile(Flags.Secrets, b, 0644)
+			os.Exit(2)
+		}
+	} else {
+		fmt.Println("* Importing project...")
+		if err := shared.Descope.Management.Project().Import(context.Background(), im.files, secrets); err != nil {
+			return fmt.Errorf("failed to import project: %w", err)
+		}
+	}
+
+	fmt.Println("* Done")
+	return nil
+}
+
+func (im *importer) Validate() error {
 	fmt.Println("* Reading files...")
 
 	im.files = map[string]any{}
@@ -46,7 +107,7 @@ func (im *importer) Import() error {
 	}
 
 	fmt.Println("* Importing project...")
-	if err := shared.Descope.Management.Project().Import(context.Background(), im.files); err != nil {
+	if err := shared.Descope.Management.Project().Import(context.Background(), im.files, nil); err != nil {
 		return fmt.Errorf("failed to import project: %w", err)
 	}
 
