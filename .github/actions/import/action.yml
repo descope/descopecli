@@ -85,10 +85,16 @@ runs:
       run: |
         echo "Importing project"
         SECRETS_FILE="$(mktemp)"
+        echo "Secrets file: $SECRETS_FILE"
         jq -r '.inputs.secrets' $GITHUB_EVENT_PATH > "$SECRETS_FILE"
+        echo "Before:"
+        cat "$SECRETS_FILE"
         descopecli project validate "${{ inputs.project_id }}" --secrets "$SECRETS_FILE" --path "${{ inputs.files_path }}"
+        echo "After:"
+        cat "$SECRETS_FILE"
         result=$?
         if [ "$result" = "2" ]; then
+          echo "missing_secrets=$(cat $SECRETS_FILE)"
           echo "missing_secrets=$(cat $SECRETS_FILE)" >> $GITHUB_OUTPUT
           exit 2
         elif [ "$result" != 0 ]; then
