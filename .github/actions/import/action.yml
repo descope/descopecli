@@ -83,6 +83,7 @@ runs:
         DESCOPE_MANAGEMENT_KEY: ${{ inputs.management_key }}
         DESCOPE_BASE_URL: ${{ inputs.descope_base_url }}
       run: |
+        set +e
         echo "Importing project"
         SECRETS_FILE="$(mktemp)"
         echo "Secrets file: $SECRETS_FILE"
@@ -97,8 +98,8 @@ runs:
         if [ "$result" = "2" ]; then
           echo "missing_secrets=$(cat $SECRETS_FILE)"
           echo "missing_secrets=$(cat $SECRETS_FILE)" >> $GITHUB_OUTPUT
-          exit 3
-        elif [ "$result" != 0 ]; then
-          exit 1
+        fi
+        if [ "$result" != "0" ]; then
+          exit $result
         fi
         descopecli project import "${{ inputs.project_id }}" --secrets "$SECRETS_FILE" --path "${{ inputs.files_path }}"
