@@ -84,6 +84,11 @@ runs:
         DESCOPE_BASE_URL: ${{ inputs.descope_base_url }}
       run: |
         set +e
+        echo "1"
+        cat $GITHUB_EVENT_PATH
+        echo "2"
+        cat $GITHUB_OUTPUT
+        echo "3"
         echo "Importing project"
         SECRETS_FILE="$(mktemp)"
         echo "Secrets file: $SECRETS_FILE"
@@ -102,4 +107,5 @@ runs:
         if [ "$result" != "0" ]; then
           exit $result
         fi
+        jq -r '.inputs.secrets' $GITHUB_EVENT_PATH > "$SECRETS_FILE"
         descopecli project import "${{ inputs.project_id }}" --secrets "$SECRETS_FILE" --path "${{ inputs.files_path }}"
