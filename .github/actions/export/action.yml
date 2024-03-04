@@ -98,6 +98,7 @@ runs:
         if [ -n "$(git status --porcelain=v1 2> /dev/null)" ]; then
           CHANGES_FILE="$(mktemp)"
           git diff --name-only > $CHANGES_FILE
+          echo "Changes files:"
           cat $CHANGES_FILE | sed -e 's|^|  - |'
           echo "changes_file=$CHANGES_FILE" >> $GITHUB_OUTPUT
         else
