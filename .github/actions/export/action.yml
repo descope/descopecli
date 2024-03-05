@@ -50,11 +50,11 @@ runs:
       shell: bash
       run: go install github.com/descope/descopecli@validate-import
 
-    - name: Validate State
+    - name: Check State
       shell: bash
       run: |
         set +e
-        echo "Validating action state"
+        echo "Checking action state"
         if [ -z "${{ inputs.project_id }}" ]; then
           echo "The project_id input is required for this action to run"
           exit 1

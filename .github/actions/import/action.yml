@@ -21,6 +21,12 @@ inputs:
   files_path:
     description: 'The path to the import files (i.e., the directory containing the environment.json file)'
     default: '.'
+  validate_only:
+    description: 'Whether to only perform the validate step'
+    type: boolean
+  import_only:
+    description: 'Whether to only perform the import step'
+    type: boolean
   descopecli_version:
     description: 'The version of the descopecli tool to use'
     default: 'v0.1.0'
@@ -53,10 +59,10 @@ runs:
       shell: bash
       run: go install github.com/descope/descopecli@validate-import
 
-    - name: Validate State
+    - name: Check State
       shell: bash
       run: |
-        echo "Validating action state"
+        echo "Checking action state"
         if [ -z "${{ inputs.project_id }}" ]; then
           echo "The project_id input is required for this action to run"
           exit 1
@@ -77,6 +83,7 @@ runs:
         fi
 
     - name: Validate Data
+      if: ${{ !inputs.import_only }}
       id: validate
       shell: bash
       env:
@@ -97,6 +104,7 @@ runs:
         exit $result
 
     - name: Import Project
+      if: ${{ !inputs.validate_only }}
       shell: bash
       env:
         DESCOPE_MANAGEMENT_KEY: ${{ inputs.management_key }}
