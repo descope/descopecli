@@ -79,6 +79,9 @@ runs:
     - name: Validate Data
       id: validate
       shell: bash
+      env:
+        DESCOPE_MANAGEMENT_KEY: ${{ inputs.management_key }}
+        DESCOPE_BASE_URL: ${{ inputs.descope_base_url }}
       run: |
         echo "Validating project data"
         set +e
