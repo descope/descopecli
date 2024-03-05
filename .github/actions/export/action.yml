@@ -100,7 +100,7 @@ runs:
           git diff --name-only > $CHANGES_FILE
           echo "Changes files:"
           cat $CHANGES_FILE | sed -e 's|^|  - |'
-          echo "changes_file=$CHANGES_FILE" >> $GITHUB_OUTPUT
+          echo changes_file="$CHANGES_FILE" >> $GITHUB_OUTPUT
         else
           echo "No files were changed"
         fi
