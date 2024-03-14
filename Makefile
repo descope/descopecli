@@ -17,7 +17,7 @@ install: ensure-go ## installs the descopecli command line tool to $GOPATH/bin
 	go install .
 	echo The $$'\e[33m'descopecli$$'\e[0m' tool has been installed to $$GOPATH/bin
 
-lint: ensure-linter ensure-gitleaks ## runs the golangci-lint linter
+lint: ensure-linter ensure-gitleaks ## check for linter and gitleaks failures
 	golangci-lint --config .github/actions/ci/lint/golangci.yml run
 	gitleaks protect --redact -v -c .github/actions/ci/leaks/gitleaks.toml
 	gitleaks detect --redact -v -c .github/actions/ci/leaks/gitleaks.toml
