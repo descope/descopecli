@@ -42,10 +42,10 @@ func main() {
 const help = "A command line utility for working with the Descope management APIs"
 
 const examples = `  # Load an existing user by their loginId
-  export DESCOPE_PROJECT_ID=P2Z1234567890123456789012345
-  export DESCOPE_MANAGEMENT_KEY=K2a1F12345678901234567890123451234567890123456789012345
+  export DESCOPE_PROJECT_ID=...
+  export DESCOPE_MANAGEMENT_KEY=...
   descopecli user load -l name@example.com
 
   # Export all project settings and configurations
-  export DESCOPE_MANAGEMENT_KEY=K2a1F12345678901234567890123451234567890123456789012345
-  descopecli export project P2Z1234567890123456789012345`
+  export DESCOPE_MANAGEMENT_KEY=...
+  descopecli project export P2Z1234567890123456789012345`
