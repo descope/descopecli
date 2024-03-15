@@ -67,17 +67,21 @@ func (im *importer) Run(validate bool) error {
 
 	if validate {
 		fmt.Println("* Validating import...")
-		secrets, err := shared.Descope.Management.Project().ValidateImport(context.Background(), im.files, secrets)
+		missingSecrets, err := shared.Descope.Management.Project().ValidateImport(context.Background(), im.files, secrets)
 		if err != nil {
 			return fmt.Errorf("failed to import project: %w", err)
 		}
-		if len(secrets) == 0 {
+		if len(missingSecrets) == 0 {
 			fmt.Println("* Validation passed")
 		} else {
 			fmt.Println("* Validation failed")
 			if Flags.Secrets == "" {
 				return errors.New("validation failed but no secrets path was specified")
 			}
+			for _, v := range secrets {
+				v["value"] = ""
+			}
+			secrets = append(secrets, missingSecrets...)
 			b, _ := json.MarshalIndent(secrets, "", "  ")
 			b = append(b, '\n')
 			os.WriteFile(Flags.Secrets, b, 0644)
