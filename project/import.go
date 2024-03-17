@@ -11,17 +11,18 @@ import (
 	"strings"
 
 	"github.com/descope/descopecli/shared"
+	"github.com/descope/go-sdk/descope"
 )
 
 func Import(args []string) error {
-	return run(args, false)
+	return runImporter(args, false)
 }
 
 func Validate(args []string) error {
-	return run(args, true)
+	return runImporter(args, true)
 }
 
-func run(args []string, validate bool) error {
+func runImporter(args []string, validate bool) error {
 	root := Flags.Path
 	if root == "" {
 		root = "env-" + args[0]
@@ -53,69 +54,62 @@ func (im *importer) Run(validate bool) error {
 		WriteDebugFile(im.root, "debug/import.log", im.files)
 	}
 
-	secrets := []map[string]any{}
-	if Flags.Secrets != "" {
-		fmt.Println("* Reading secrets...")
-		bytes, err := os.ReadFile(Flags.Secrets)
-		if err != nil {
-			return fmt.Errorf("failed to read import file %s: %w", Flags.Secrets, err)
-		}
-		if err = json.Unmarshal(bytes, &secrets); err != nil {
-			return fmt.Errorf("failed to convert import json file %s: %w", Flags.Secrets, err)
-		}
+	var secrets *descope.ImportProjectSecrets
+	secrets, err := im.readSecrets(Flags.SecretsInput)
+	if err != nil {
+		return err
 	}
 
+	req := &descope.ImportProjectRequest{Files: im.files, InputSecrets: secrets}
 	if validate {
-		fmt.Println("* Validating import...")
-		missingSecrets, err := shared.Descope.Management.Project().ValidateImport(context.Background(), im.files, secrets)
-		if err != nil {
-			return fmt.Errorf("failed to import project: %w", err)
-		}
-		if len(missingSecrets) == 0 {
-			fmt.Println("* Validation passed")
-		} else {
-			fmt.Println("* Validation failed")
-			if Flags.Secrets == "" {
-				return errors.New("validation failed but no secrets path was specified")
-			}
-			for _, v := range secrets {
-				v["value"] = ""
-			}
-			secrets = append(secrets, missingSecrets...)
-			b, _ := json.MarshalIndent(secrets, "", "  ")
-			b = append(b, '\n')
-			os.WriteFile(Flags.Secrets, b, 0644)
-			os.Exit(2)
-		}
-	} else {
-		fmt.Println("* Importing project...")
-		if err := shared.Descope.Management.Project().Import(context.Background(), im.files, secrets); err != nil {
-			return fmt.Errorf("failed to import project: %w", err)
-		}
+		return im.Validate(req)
 	}
+	return im.Import(req)
+}
 
+func (im *importer) Import(req *descope.ImportProjectRequest) error {
+	fmt.Println("* Importing project...")
+	if err := shared.Descope.Management.Project().Import(context.Background(), req); err != nil {
+		return fmt.Errorf("failed to import project: %w", err)
+	}
 	fmt.Println("* Done")
 	return nil
 }
 
-func (im *importer) Validate() error {
-	fmt.Println("* Reading files...")
-
-	im.files = map[string]any{}
-	if err := im.readFiles(im.root); err != nil {
-		return err
+func (im *importer) Validate(req *descope.ImportProjectRequest) error {
+	fmt.Println("* Validating import data...")
+	res, err := shared.Descope.Management.Project().ValidateImport(context.Background(), req)
+	if err != nil {
+		return fmt.Errorf("failed to validate project: %w", err)
+	}
+	if res.Ok {
+		return nil
 	}
 
-	if Flags.Debug {
-		WriteDebugFile(im.root, "debug/import.log", im.files)
+	fmt.Println("* Validation failed:")
+	for _, f := range res.Failures {
+		fmt.Printf("  - %s", f)
+	}
+	if Flags.FailureOutput != "" {
+		var b []byte
+		for _, f := range res.Failures {
+			b = append(b, f...)
+			b = append(b, '\n')
+		}
+		if err := os.WriteFile(Flags.FailureOutput, b, 0644); err != nil {
+			return fmt.Errorf("failed to write failure output file %s: %w", Flags.FailureOutput, err)
+		}
 	}
 
-	fmt.Println("* Importing project...")
-	if err := shared.Descope.Management.Project().Import(context.Background(), im.files, nil); err != nil {
-		return fmt.Errorf("failed to import project: %w", err)
+	if len(res.MissingSecrets.Connectors) > 0 || len(res.MissingSecrets.OAuthProviders) > 0 {
+		if Flags.SecretsOutput == "" {
+			return errors.New("validation failed with missing secrets but no secrets output path was specified")
+		}
+		im.writeSecrets(Flags.SecretsOutput, res.MissingSecrets)
 	}
 
-	fmt.Println("* Done")
+	// differentiate validation failures with status code 2, as opposed to 1 for all other errors
+	os.Exit(2)
 	return nil
 }
 
@@ -180,5 +174,81 @@ func (im *importer) readFile(fullpath string) error {
 	if !skipped {
 		fmt.Printf("  - %s\n", relpath)
 	}
+	return nil
+}
+
+type secretEntry struct {
+	ID    string `json:"id"`
+	Type  string `json:"type"`
+	Value string `json:"value"`
+}
+
+type secretsFile struct {
+	Connectors     map[string][]*secretEntry `json:"connectors,omitempty"`
+	OAuthProviders map[string][]*secretEntry `json:"oauthproviders,omitempty"`
+}
+
+func (im *importer) readSecrets(path string) (*descope.ImportProjectSecrets, error) {
+	var file secretsFile
+
+	fmt.Println("* Reading input secrets...")
+	bytes, err := os.ReadFile(path)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read secrets input file %s: %w", path, err)
+	}
+	if err = json.Unmarshal(bytes, &file); err != nil {
+		return nil, fmt.Errorf("failed to convert secrets input json %s: %w", path, err)
+	}
+
+	secrets := &descope.ImportProjectSecrets{}
+	if file.Connectors != nil {
+		for k, list := range file.Connectors {
+			for _, v := range list {
+				secrets.Connectors = append(secrets.Connectors, &descope.ImportProjectSecret{ID: v.ID, Name: k, Type: v.Type, Value: v.Value})
+			}
+		}
+	}
+	if file.OAuthProviders != nil {
+		for k, list := range file.OAuthProviders {
+			for _, v := range list {
+				secrets.OAuthProviders = append(secrets.OAuthProviders, &descope.ImportProjectSecret{ID: v.ID, Name: k, Type: v.Type, Value: v.Value})
+			}
+		}
+	}
+
+	found := len(secrets.Connectors) + len(secrets.OAuthProviders)
+	if found == 0 {
+		fmt.Println("* No secrets found in input")
+	} else if found == 1 {
+		fmt.Println("* Found 1 secret in input")
+	} else {
+		fmt.Printf("* Found %d secrets in input", found)
+	}
+
+	return secrets, nil
+}
+
+func (im *importer) writeSecrets(path string, secrets *descope.ImportProjectSecrets) error {
+	fmt.Println("* Writing missing secrets output...")
+	file := secretsFile{}
+	for _, v := range secrets.Connectors {
+		if file.Connectors == nil {
+			file.Connectors = map[string][]*secretEntry{}
+		}
+		file.Connectors[v.Name] = append(file.Connectors[v.Name], &secretEntry{ID: v.ID, Type: v.Type, Value: v.Value})
+	}
+	for _, v := range secrets.OAuthProviders {
+		if file.OAuthProviders == nil {
+			file.OAuthProviders = map[string][]*secretEntry{}
+		}
+		file.OAuthProviders[v.Name] = append(file.OAuthProviders[v.Name], &secretEntry{ID: v.ID, Type: v.Type, Value: v.Value})
+	}
+
+	b, _ := json.MarshalIndent(secrets, "", "  ")
+	b = append(b, '\n')
+	if err := os.WriteFile(path, b, 0644); err != nil {
+		return fmt.Errorf("failed to write secrets output file %s: %w", path, err)
+	}
+
 	return nil
 }

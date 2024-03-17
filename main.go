@@ -13,7 +13,7 @@ import (
 
 func main() {
 	cli := &cobra.Command{
-		Version: "0.1.0",
+		Version: "0.8.0",
 		Use:     "descopecli",
 		Short:   help,
 		Example: examples,

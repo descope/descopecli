@@ -52,21 +52,21 @@ type exporter struct {
 
 func (ex *exporter) Export() error {
 	fmt.Println("* Exporting project...")
-	files, err := shared.Descope.Management.Project().Export(context.Background())
+	res, err := shared.Descope.Management.Project().Export(context.Background())
 	if err != nil {
 		return fmt.Errorf("failed to export project: %w", err)
 	}
 
 	if Flags.Debug {
-		WriteDebugFile(ex.root, "debug/export.log", files)
+		WriteDebugFile(ex.root, "debug/export.log", res.Files)
 	}
 
 	fmt.Println("* Writing files...")
-	paths := maps.Keys(files)
+	paths := maps.Keys(res.Files)
 	sort.Strings(paths)
 	for _, path := range paths {
 		fmt.Printf("  - %s\n", path)
-		data := files[path]
+		data := res.Files[path]
 		if object, ok := data.(map[string]any); ok {
 			if err := ex.writeObject(path, object); err != nil {
 				return err
