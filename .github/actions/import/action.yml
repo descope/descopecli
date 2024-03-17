@@ -36,7 +36,7 @@ inputs:
 outputs:
   failure_file:
     description: 'The path to a file with a list of failures, or empty if there were none'
-    value: ${{ steps.validate.outputs.failures_file }}
+    value: ${{ steps.validate.outputs.failure_file }}
   secrets_file:
     description: 'The path to a JSON array with any missing secrets, or empty if there were none'
     value: ${{ steps.validate.outputs.secrets_file }}
@@ -103,15 +103,10 @@ runs:
         result=$?
         rm "$SECRETS_INPUT"
         if [ "$result" = "2" ]; then
-          echo "Failure"
           if [ -f "$SECRETS_OUTPUT" ] && [ -s "$SECRETS_OUTPUT" ]; then
-            echo "Secrets:"
-            cat "$SECRETS_OUTPUT"
             echo secrets_file="$SECRETS_OUTPUT" >> $GITHUB_OUTPUT
           fi
           if [ -f "$FAILURE_OUTPUT" ] && [ -s "$FAILURE_OUTPUT" ]; then
-            echo "Failures:"
-            cat "$FAILURE_OUTPUT"
             echo failure_file="$FAILURE_OUTPUT" >> $GITHUB_OUTPUT
           fi
         fi
