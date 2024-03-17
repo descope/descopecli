@@ -34,6 +34,9 @@ inputs:
     description: 'The base URL used to communicate with Descope servers (for troubleshooting purposes)'
 
 outputs:
+  failures_file:
+    description: 'The path to a file with a list of failures, or empty if there were none'
+    value: ${{ steps.validate.outputs.failures_file }}
   secrets_file:
     description: 'The path to a JSON array with any missing secrets, or empty if there were none'
     value: ${{ steps.validate.outputs.secrets_file }}
@@ -92,14 +95,20 @@ runs:
       run: |
         echo "Validating project data"
         set +e
-        SECRETS_FILE="$(mktemp)"
-        jq -r '.inputs.secrets' $GITHUB_EVENT_PATH > "$SECRETS_FILE"
-        descopecli project validate "${{ inputs.project_id }}" --secrets "$SECRETS_FILE" --path "${{ inputs.files_path }}"
+        SECRETS_INPUT="$(mktemp)"
+        SECRETS_OUTPUT="$(mktemp)"
+        FAILURE_OUTPUT="$(mktemp)"
+        jq -r '.inputs.secrets' $GITHUB_EVENT_PATH > "$SECRETS_INPUT"
+        descopecli project validate "${{ inputs.project_id }}" --path "${{ inputs.files_path }}" --secrets-input "$SECRETS_INPUT" --secrets-output "$SECRETS_OUTPUT" --failure-output "$FAILURE_OUTPUT"
         result=$?
+        rm "$SECRETS_INPUT"
         if [ "$result" = "2" ]; then
-          echo secrets_file="$SECRETS_FILE" >> $GITHUB_OUTPUT
-        else
-          rm "$SECRETS_FILE"
+          if [ -f "$SECRETS_OUTPUT" ] && [ -s "$SECRETS_OUTPUT" ]; then
+            echo secrets_file="$SECRETS_OUTPUT" >> $GITHUB_OUTPUT
+          fi
+          if [ -f "$FAILURE_OUTPUT" ] && [ -s "$FAILURE_OUTPUT" ]; then
+            echo failure_file="$FAILURE_OUTPUT" >> $GITHUB_OUTPUT
+          fi
         fi
         exit $result
 
@@ -112,9 +121,9 @@ runs:
       run: |
         echo "Importing project"
         set +e
-        SECRETS_FILE="$(mktemp)"
-        jq -r '.inputs.secrets' $GITHUB_EVENT_PATH > "$SECRETS_FILE"
-        descopecli project import "${{ inputs.project_id }}" --secrets "$SECRETS_FILE" --path "${{ inputs.files_path }}"
+        SECRETS_INPUT="$(mktemp)"
+        jq -r '.inputs.secrets' $GITHUB_EVENT_PATH > "$SECRETS_INPUT"
+        descopecli project import "${{ inputs.project_id }}" --path "${{ inputs.files_path }}" --secrets-input "$SECRETS_INPUT"
         result=$?
-        rm "$SECRETS_FILE"
+        rm "$SECRETS_INPUT"
         exit $result
