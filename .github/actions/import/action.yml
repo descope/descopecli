@@ -34,7 +34,7 @@ inputs:
     description: 'The base URL used to communicate with Descope servers (for troubleshooting purposes)'
 
 outputs:
-  failures_file:
+  failure_file:
     description: 'The path to a file with a list of failures, or empty if there were none'
     value: ${{ steps.validate.outputs.failures_file }}
   secrets_file:
