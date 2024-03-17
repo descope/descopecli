@@ -88,7 +88,7 @@ func (im *importer) Validate(req *descope.ImportProjectRequest) error {
 
 	fmt.Println("* Validation failed:")
 	for _, f := range res.Failures {
-		fmt.Printf("  - %s", f)
+		fmt.Printf("  - %s\n", f)
 	}
 	if Flags.FailureOutput != "" {
 		var b []byte
