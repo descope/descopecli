@@ -244,7 +244,7 @@ func (im *importer) writeSecrets(path string, secrets *descope.ImportProjectSecr
 		file.OAuthProviders[v.Name] = append(file.OAuthProviders[v.Name], &secretEntry{ID: v.ID, Type: v.Type, Value: v.Value})
 	}
 
-	b, _ := json.MarshalIndent(secrets, "", "  ")
+	b, _ := json.MarshalIndent(file, "", "  ")
 	b = append(b, '\n')
 	if err := os.WriteFile(path, b, 0644); err != nil {
 		return fmt.Errorf("failed to write secrets output file %s: %w", path, err)
