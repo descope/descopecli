@@ -177,18 +177,18 @@ func (im *importer) readFile(fullpath string) error {
 	return nil
 }
 
-type secretEntries struct {
+const (
+	connectorPrefix = "connector:"
+	oauthPrefix     = "oauthprovider:"
+)
+
+type secretEntry struct {
 	Name    string            `json:"name"`
 	Secrets map[string]string `json:"secrets"`
 }
 
-type secretsFile struct {
-	Connectors     map[string]*secretEntries `json:"connectors,omitempty"`
-	OAuthProviders map[string]*secretEntries `json:"oauthproviders,omitempty"`
-}
-
 func (im *importer) readSecrets(path string) (*descope.ImportProjectSecrets, error) {
-	var file secretsFile
+	var file map[string]*secretEntry
 
 	fmt.Println("* Reading input secrets...")
 	bytes, err := os.ReadFile(path)
@@ -200,19 +200,19 @@ func (im *importer) readSecrets(path string) (*descope.ImportProjectSecrets, err
 	}
 
 	secrets := &descope.ImportProjectSecrets{}
-	if file.Connectors != nil {
-		for k, v := range file.Connectors {
-			for typ, value := range v.Secrets {
-				secrets.Connectors = append(secrets.Connectors, &descope.ImportProjectSecret{ID: k, Name: v.Name, Type: typ, Value: value})
+	for k, entry := range file {
+		if strings.HasPrefix(k, connectorPrefix) {
+			id := strings.TrimPrefix(k, connectorPrefix)
+			for typ, value := range entry.Secrets {
+				secrets.Connectors = append(secrets.Connectors, &descope.ImportProjectSecret{ID: id, Name: entry.Name, Type: typ, Value: value})
+			}
+		} else if strings.HasPrefix(k, oauthPrefix) {
+			id := strings.TrimPrefix(k, oauthPrefix)
+			for typ, value := range entry.Secrets {
+				secrets.OAuthProviders = append(secrets.OAuthProviders, &descope.ImportProjectSecret{ID: id, Name: entry.Name, Type: typ, Value: value})
 			}
 		}
-	}
-	if file.OAuthProviders != nil {
-		for k, v := range file.Connectors {
-			for typ, value := range v.Secrets {
-				secrets.Connectors = append(secrets.Connectors, &descope.ImportProjectSecret{ID: k, Name: v.Name, Type: typ, Value: value})
-			}
-		}
+
 	}
 
 	found := len(secrets.Connectors) + len(secrets.OAuthProviders)
@@ -229,24 +229,22 @@ func (im *importer) readSecrets(path string) (*descope.ImportProjectSecrets, err
 
 func (im *importer) writeSecrets(path string, secrets *descope.ImportProjectSecrets) error {
 	fmt.Println("* Writing missing secrets output...")
-	file := secretsFile{}
+	file := map[string]*secretEntry{}
 	for _, v := range secrets.Connectors {
-		if file.Connectors == nil {
-			file.Connectors = map[string]*secretEntries{}
+		key := connectorPrefix + v.ID
+		file[key] = &secretEntry{Name: v.Name, Secrets: map[string]string{}}
+		if _, ok := file[key]; !ok {
+			file[key] = &secretEntry{Name: v.Name, Secrets: map[string]string{}}
 		}
-		if _, ok := file.Connectors[v.ID]; !ok {
-			file.Connectors[v.ID] = &secretEntries{Name: v.Name, Secrets: map[string]string{}}
-		}
-		file.Connectors[v.ID].Secrets[v.Type] = ""
+		file[key].Secrets[v.Type] = ""
 	}
 	for _, v := range secrets.OAuthProviders {
-		if file.OAuthProviders == nil {
-			file.OAuthProviders = map[string]*secretEntries{}
+		key := oauthPrefix + v.ID
+		file[key] = &secretEntry{Name: v.Name, Secrets: map[string]string{}}
+		if _, ok := file[key]; !ok {
+			file[key] = &secretEntry{Name: v.Name, Secrets: map[string]string{}}
 		}
-		if _, ok := file.OAuthProviders[v.ID]; !ok {
-			file.OAuthProviders[v.ID] = &secretEntries{Name: v.Name, Secrets: map[string]string{}}
-		}
-		file.OAuthProviders[v.ID].Secrets[v.Type] = ""
+		file[key].Secrets[v.Type] = ""
 	}
 
 	b, _ := json.MarshalIndent(file, "", "  ")
