@@ -12,6 +12,7 @@ var Flags struct {
 	SecretsInput  string
 	SecretsOutput string
 	FailureOutput string
+	Force         bool
 }
 
 func AddCommands(parent *cobra.Command, group *cobra.Group) {
@@ -42,6 +43,12 @@ func AddCommands(parent *cobra.Command, group *cobra.Group) {
 	shared.AddCommand(project, Clone, "clone <existingProjectId> <newProjectName> [-t tag]", "Clones an existing project along with all settings and configurations", func(cmd *cobra.Command) {
 		cmd.Args = cobra.ExactArgs(2)
 		cmd.Flags().StringVarP(&Flags.Path, "tag", "t", "", "An optional tag for the new project, only valid value is production")
+		cmd.PreRunE = shared.ProjectPreRun
+	})
+
+	shared.AddCommand(project, Delete, "delete <projectId> [-f]", "Deletes an existing project", func(cmd *cobra.Command) {
+		cmd.Args = cobra.ExactArgs(1)
+		cmd.Flags().BoolVarP(&Flags.Force, "force", "f", false, "Skips the prompt the deletes the project immediately")
 		cmd.PreRunE = shared.ProjectPreRun
 	})
 
