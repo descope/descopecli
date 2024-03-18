@@ -83,6 +83,7 @@ func (im *importer) Validate(req *descope.ImportProjectRequest) error {
 		return fmt.Errorf("failed to validate project: %w", err)
 	}
 	if res.Ok {
+		fmt.Println("* Done")
 		return nil
 	}
 
