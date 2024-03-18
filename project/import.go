@@ -178,8 +178,8 @@ func (im *importer) readFile(fullpath string) error {
 }
 
 const (
-	connectorPrefix = "connector:"
-	oauthPrefix     = "oauthprovider:"
+	connectorPrefix = "connector-"
+	oauthPrefix     = "oauthprovider-"
 )
 
 type secretEntry struct {
@@ -211,8 +211,9 @@ func (im *importer) readSecrets(path string) (*descope.ImportProjectSecrets, err
 			for typ, value := range entry.Secrets {
 				secrets.OAuthProviders = append(secrets.OAuthProviders, &descope.ImportProjectSecret{ID: id, Name: entry.Name, Type: typ, Value: value})
 			}
+		} else {
+			return nil, fmt.Errorf("unexpected secret type: %s", k)
 		}
-
 	}
 
 	found := len(secrets.Connectors) + len(secrets.OAuthProviders)
