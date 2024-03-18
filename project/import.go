@@ -177,15 +177,14 @@ func (im *importer) readFile(fullpath string) error {
 	return nil
 }
 
-type secretEntry struct {
-	ID    string `json:"id"`
-	Type  string `json:"type"`
-	Value string `json:"value"`
+type secretEntries struct {
+	ID      string            `json:"id"`
+	Secrets map[string]string `json:"secrets"`
 }
 
 type secretsFile struct {
-	Connectors     map[string][]*secretEntry `json:"connectors,omitempty"`
-	OAuthProviders map[string][]*secretEntry `json:"oauthproviders,omitempty"`
+	Connectors     map[string]*secretEntries `json:"connectors,omitempty"`
+	OAuthProviders map[string]*secretEntries `json:"oauthproviders,omitempty"`
 }
 
 func (im *importer) readSecrets(path string) (*descope.ImportProjectSecrets, error) {
@@ -202,16 +201,16 @@ func (im *importer) readSecrets(path string) (*descope.ImportProjectSecrets, err
 
 	secrets := &descope.ImportProjectSecrets{}
 	if file.Connectors != nil {
-		for k, list := range file.Connectors {
-			for _, v := range list {
-				secrets.Connectors = append(secrets.Connectors, &descope.ImportProjectSecret{ID: v.ID, Name: k, Type: v.Type, Value: v.Value})
+		for k, v := range file.Connectors {
+			for typ, value := range v.Secrets {
+				secrets.Connectors = append(secrets.Connectors, &descope.ImportProjectSecret{ID: v.ID, Name: k, Type: typ, Value: value})
 			}
 		}
 	}
 	if file.OAuthProviders != nil {
-		for k, list := range file.OAuthProviders {
-			for _, v := range list {
-				secrets.OAuthProviders = append(secrets.OAuthProviders, &descope.ImportProjectSecret{ID: v.ID, Name: k, Type: v.Type, Value: v.Value})
+		for k, v := range file.Connectors {
+			for typ, value := range v.Secrets {
+				secrets.Connectors = append(secrets.Connectors, &descope.ImportProjectSecret{ID: v.ID, Name: k, Type: typ, Value: value})
 			}
 		}
 	}
@@ -222,7 +221,7 @@ func (im *importer) readSecrets(path string) (*descope.ImportProjectSecrets, err
 	} else if found == 1 {
 		fmt.Println("* Found 1 secret in input")
 	} else {
-		fmt.Printf("* Found %d secrets in input", found)
+		fmt.Printf("* Found %d secrets in input\n", found)
 	}
 
 	return secrets, nil
@@ -233,15 +232,21 @@ func (im *importer) writeSecrets(path string, secrets *descope.ImportProjectSecr
 	file := secretsFile{}
 	for _, v := range secrets.Connectors {
 		if file.Connectors == nil {
-			file.Connectors = map[string][]*secretEntry{}
+			file.Connectors = map[string]*secretEntries{}
 		}
-		file.Connectors[v.Name] = append(file.Connectors[v.Name], &secretEntry{ID: v.ID, Type: v.Type, Value: v.Value})
+		if _, ok := file.Connectors[v.Name]; !ok {
+			file.Connectors[v.Name] = &secretEntries{ID: v.ID}
+		}
+		file.Connectors[v.Name].Secrets[v.Type] = ""
 	}
 	for _, v := range secrets.OAuthProviders {
 		if file.OAuthProviders == nil {
-			file.OAuthProviders = map[string][]*secretEntry{}
+			file.OAuthProviders = map[string]*secretEntries{}
 		}
-		file.OAuthProviders[v.Name] = append(file.OAuthProviders[v.Name], &secretEntry{ID: v.ID, Type: v.Type, Value: v.Value})
+		if _, ok := file.OAuthProviders[v.Name]; !ok {
+			file.OAuthProviders[v.Name] = &secretEntries{ID: v.ID}
+		}
+		file.OAuthProviders[v.Name].Secrets[v.Type] = ""
 	}
 
 	b, _ := json.MarshalIndent(file, "", "  ")
