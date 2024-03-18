@@ -60,7 +60,7 @@ runs:
     - name: Install Descopecli
       if: steps.cache-action.outputs.cache-hit != 'true'
       shell: bash
-      run: go install github.com/descope/descopecli@import-validate
+      run: go install github.com/descope/descopecli@validate-import
 
     - name: Check State
       shell: bash
