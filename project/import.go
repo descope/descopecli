@@ -178,7 +178,7 @@ func (im *importer) readFile(fullpath string) error {
 }
 
 type secretEntries struct {
-	ID      string            `json:"id"`
+	Name    string            `json:"name"`
 	Secrets map[string]string `json:"secrets"`
 }
 
@@ -203,14 +203,14 @@ func (im *importer) readSecrets(path string) (*descope.ImportProjectSecrets, err
 	if file.Connectors != nil {
 		for k, v := range file.Connectors {
 			for typ, value := range v.Secrets {
-				secrets.Connectors = append(secrets.Connectors, &descope.ImportProjectSecret{ID: v.ID, Name: k, Type: typ, Value: value})
+				secrets.Connectors = append(secrets.Connectors, &descope.ImportProjectSecret{ID: k, Name: v.Name, Type: typ, Value: value})
 			}
 		}
 	}
 	if file.OAuthProviders != nil {
 		for k, v := range file.Connectors {
 			for typ, value := range v.Secrets {
-				secrets.Connectors = append(secrets.Connectors, &descope.ImportProjectSecret{ID: v.ID, Name: k, Type: typ, Value: value})
+				secrets.Connectors = append(secrets.Connectors, &descope.ImportProjectSecret{ID: k, Name: v.Name, Type: typ, Value: value})
 			}
 		}
 	}
@@ -234,19 +234,19 @@ func (im *importer) writeSecrets(path string, secrets *descope.ImportProjectSecr
 		if file.Connectors == nil {
 			file.Connectors = map[string]*secretEntries{}
 		}
-		if _, ok := file.Connectors[v.Name]; !ok {
-			file.Connectors[v.Name] = &secretEntries{ID: v.ID}
+		if _, ok := file.Connectors[v.ID]; !ok {
+			file.Connectors[v.ID] = &secretEntries{Name: v.Name, Secrets: map[string]string{}}
 		}
-		file.Connectors[v.Name].Secrets[v.Type] = ""
+		file.Connectors[v.ID].Secrets[v.Type] = ""
 	}
 	for _, v := range secrets.OAuthProviders {
 		if file.OAuthProviders == nil {
 			file.OAuthProviders = map[string]*secretEntries{}
 		}
-		if _, ok := file.OAuthProviders[v.Name]; !ok {
-			file.OAuthProviders[v.Name] = &secretEntries{ID: v.ID}
+		if _, ok := file.OAuthProviders[v.ID]; !ok {
+			file.OAuthProviders[v.ID] = &secretEntries{Name: v.Name, Secrets: map[string]string{}}
 		}
-		file.OAuthProviders[v.Name].Secrets[v.Type] = ""
+		file.OAuthProviders[v.ID].Secrets[v.Type] = ""
 	}
 
 	b, _ := json.MarshalIndent(file, "", "  ")
