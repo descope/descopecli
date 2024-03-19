@@ -42,7 +42,7 @@ type importer struct {
 	files map[string]any
 }
 
-func (im *importer) Run(validate bool) error {
+func (im *importer) Run(validate bool) (err error) {
 	fmt.Println("* Reading files...")
 
 	im.files = map[string]any{}
@@ -55,9 +55,11 @@ func (im *importer) Run(validate bool) error {
 	}
 
 	var secrets *descope.ImportProjectSecrets
-	secrets, err := im.readSecrets(Flags.SecretsInput)
-	if err != nil {
-		return err
+	if Flags.SecretsInput != "" {
+		secrets, err = im.readSecrets(Flags.SecretsInput)
+		if err != nil {
+			return err
+		}
 	}
 
 	req := &descope.ImportProjectRequest{Files: im.files, InputSecrets: secrets}
