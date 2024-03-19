@@ -25,6 +25,7 @@ local_test.go
 coverage.html
 
 # Go build outputs
+descopecli
 __debug_bin
 outputs/
 

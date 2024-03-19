@@ -15,7 +15,7 @@ func Create(args []string) error {
 		tenants = append(tenants, &descope.AssociatedTenant{TenantID: tenantID})
 	}
 
-	cleartext, res, err := shared.Descope.Management.AccessKey().Create(context.Background(), args[0], Flags.Expires, nil, tenants, Flags.UserId)
+	cleartext, res, err := shared.Descope.Management.AccessKey().Create(context.Background(), args[0], Flags.Expires, nil, tenants, Flags.UserId, nil)
 	if err != nil {
 		return err
 	}

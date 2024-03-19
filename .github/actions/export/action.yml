@@ -25,9 +25,9 @@ inputs:
     description: 'The base URL used to communicate with Descope servers (for troubleshooting purposes)'
 
 outputs:
-  has_changes:
-    description: 'Whether the export introduced any new changes'
-    value: ${{ steps.check.outputs.has_changes }}
+  changes_file:
+    description: 'The path to a file that lists changes introduced by the export, or empty if there were no changes'
+    value: ${{ steps.check.outputs.changes_file }}
 
 runs:
   using: 'composite'
@@ -50,10 +50,11 @@ runs:
       shell: bash
       run: go install github.com/descope/descopecli@main
 
-    - name: Validate State
+    - name: Check State
       shell: bash
       run: |
-        echo "Validating action state"
+        set +e
+        echo "Checking action state"
         if [ -z "${{ inputs.project_id }}" ]; then
           echo "The project_id input is required for this action to run"
           exit 1
@@ -65,7 +66,7 @@ runs:
           exit 1
         fi
         if [ -z "${{ inputs.files_path }}" ]; then
-          echo "The files_path input is cannot be an empty string"
+          echo "The files_path input cannot be an empty string"
           exit 1
         fi
         mkdir -p "${{ inputs.files_path }}"
@@ -88,10 +89,6 @@ runs:
         rm -rf "${{ inputs.files_path }}"
         mkdir -p "${{ inputs.files_path }}"
         descopecli project export "${{ inputs.project_id }}" --path "${{ inputs.files_path }}"
-        if [ "$?" != "0" ]; then
-          echo "The export operation failed"
-          exit 1
-        fi
 
     - name: Check For Changes
       id: check
@@ -99,7 +96,13 @@ runs:
       run: |
         echo "Checking if any files were changed"
         if [ -n "$(git status --porcelain=v1 2> /dev/null)" ]; then
-          echo "has_changes=true" >> $GITHUB_OUTPUT
+          CHANGES_FILE="$(mktemp)"
+          git add "${{ inputs.files_path }}"
+          git diff HEAD --name-only > $CHANGES_FILE
+          git reset HEAD
+          echo "Changes files:"
+          cat $CHANGES_FILE | sed -e 's|^|  - |'
+          echo changes_file="$CHANGES_FILE" >> $GITHUB_OUTPUT
         else
-          echo "has_changes=false" >> $GITHUB_OUTPUT
+          echo "No files were changed"
         fi
