@@ -20,9 +20,13 @@ func AddCommand(parent *cobra.Command, action func([]string) error, use string, 
 	parent.AddCommand(cmd)
 }
 
-func MakeGroupCommand(group *cobra.Group, use string, help string) *cobra.Command {
+func MakeGroupCommand(parentGroup *cobra.Group, use string, help string) *cobra.Command {
+	groupID := ""
+	if parentGroup != nil {
+		groupID = parentGroup.ID
+	}
 	cmd := &cobra.Command{
-		GroupID: group.ID,
+		GroupID: groupID,
 		Use:     use,
 		Short:   help,
 	}

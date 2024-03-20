@@ -18,6 +18,7 @@ var Flags struct {
 
 func AddCommands(parent *cobra.Command, group *cobra.Group) {
 	user := shared.MakeGroupCommand(group, "user", "Commands for creating and managing users")
+	parent.AddCommand(user)
 
 	shared.AddCommand(user, Create, "create <loginId> [-e email] [-p phone] [-n name] [-t tid,...]", "Create a new user", func(cmd *cobra.Command) {
 		cmd.Args = cobra.ExactArgs(1)
@@ -42,17 +43,18 @@ func AddCommands(parent *cobra.Command, group *cobra.Group) {
 		cmd.Flags().IntVarP(&Flags.Page, "page", "p", 0, "the number of page for pagination (default 0)")
 	})
 
-	shared.AddCommand(user, SetTemporaryPassword, "set-temporary-password <loginId> <password>", "Set a temporary password for a user", func(cmd *cobra.Command) {
+	pwd := shared.MakeGroupCommand(nil, "password", "Commands for managing user passwords")
+	user.AddCommand(pwd)
+
+	shared.AddCommand(pwd, SetTemporaryPassword, "set-temporary <loginId> <password>", "Set a temporary password for a user", func(cmd *cobra.Command) {
 		cmd.Args = cobra.ExactArgs(2)
 	})
 
-	shared.AddCommand(user, SetActivePassword, "set-active-password <loginId> <password>", "Set an active password for a user", func(cmd *cobra.Command) {
+	shared.AddCommand(pwd, SetActivePassword, "set-active <loginId> <password>", "Set an active password for a user", func(cmd *cobra.Command) {
 		cmd.Args = cobra.ExactArgs(2)
 	})
 
-	shared.AddCommand(user, ExpirePassword, "expire-password <loginId>", "Expire a user's password", func(cmd *cobra.Command) {
+	shared.AddCommand(pwd, ExpirePassword, "expire <loginId>", "Expire a user's password", func(cmd *cobra.Command) {
 		cmd.Args = cobra.ExactArgs(1)
 	})
-
-	parent.AddCommand(user)
 }
