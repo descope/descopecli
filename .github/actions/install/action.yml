@@ -23,9 +23,9 @@ runs:
       uses: actions/cache@v4
       with:
         path: ~/go/bin
-        key: ${{ runner.os }}-descopecli-${{ inputs.descopecli_version }}
+        key: ${{ runner.os }}-descopecli-${{ inputs.version }}
 
     - name: Install Descopecli
       if: steps.cache-cli.outputs.cache-hit != 'true'
       shell: bash
-      run: go install github.com/descope/descopecli@${{ inputs.descopecli_version }}
+      run: go install github.com/descope/descopecli@${{ inputs.version }}

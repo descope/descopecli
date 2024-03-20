@@ -1,6 +1,6 @@
-name: Import Project
+name: Import Snapshot
 
-description: 'Import settings and configurations and apply them to a Descope project'
+description: 'Imports a snapshot of all settings and configurations into a Descope project.'
 
 author: 'Descope'
 
@@ -19,17 +19,17 @@ inputs:
     description: 'An optional JSON value with additional secrets to inject into the import data'
     default: '[]'
   files_path:
-    description: 'The path to the import files (i.e., the directory containing the environment.json file)'
+    description: 'The path to the snapshot files (i.e., the directory containing the snapshot.json file)'
     default: '.'
   validate_only:
-    description: 'Whether to only perform the validate step'
+    description: 'Whether to only perform the validate step (for building workflows where validate is a separate job)'
     type: boolean
   import_only:
-    description: 'Whether to only perform the import step'
+    description: 'Whether to only perform the import step (for building workflows where import is a separate job)'
     type: boolean
   descopecli_version:
     description: 'The version of the descopecli tool to use'
-    default: 'v0.1.0'
+    default: 'latest'
   descope_base_url:
     description: 'The base URL used to communicate with Descope servers (for troubleshooting purposes)'
 
@@ -44,23 +44,10 @@ outputs:
 runs:
   using: 'composite'
   steps:
-    - name: Setup Go
-      uses: actions/setup-go@v5
+    - name: Install Descope CLI
+      uses: descope/descopecli/.github/actions/install@main
       with:
-        go-version: '1.21'
-        cache: false
-
-    - name: Cache Descopecli
-      id: cache-action
-      uses: actions/cache@v4
-      with:
-        path: ~/go/bin
-        key: ${{ runner.os }}-descopecli-${{ inputs.descopecli_version }}
-
-    - name: Install Descopecli
-      if: steps.cache-action.outputs.cache-hit != 'true'
-      shell: bash
-      run: go install github.com/descope/descopecli@main
+        version: ${{ inputs.descopecli_version }}
 
     - name: Check State
       shell: bash
@@ -85,7 +72,7 @@ runs:
           exit 1
         fi
 
-    - name: Validate Data
+    - name: Validate Snapshot
       if: ${{ !inputs.import_only }}
       id: validate
       shell: bash
@@ -93,13 +80,13 @@ runs:
         DESCOPE_MANAGEMENT_KEY: ${{ inputs.management_key }}
         DESCOPE_BASE_URL: ${{ inputs.descope_base_url }}
       run: |
-        echo "Validating project data"
+        echo "Validating snapshot"
         set +e
         SECRETS_INPUT="$(mktemp)"
         SECRETS_OUTPUT="$(mktemp)"
         FAILURE_OUTPUT="$(mktemp)"
         jq -r '.inputs.secrets' $GITHUB_EVENT_PATH > "$SECRETS_INPUT"
-        descopecli project validate "${{ inputs.project_id }}" --path "${{ inputs.files_path }}" --secrets-input "$SECRETS_INPUT" --secrets-output "$SECRETS_OUTPUT" --failure-output "$FAILURE_OUTPUT"
+        descopecli project snapshot validate "${{ inputs.project_id }}" --path "${{ inputs.files_path }}" --secrets-input "$SECRETS_INPUT" --secrets-output "$SECRETS_OUTPUT" --failure-output "$FAILURE_OUTPUT"
         result=$?
         rm "$SECRETS_INPUT"
         if [ "$result" = "2" ]; then
@@ -112,18 +99,18 @@ runs:
         fi
         exit $result
 
-    - name: Import Project
+    - name: Import Snapshot
       if: ${{ !inputs.validate_only }}
       shell: bash
       env:
         DESCOPE_MANAGEMENT_KEY: ${{ inputs.management_key }}
         DESCOPE_BASE_URL: ${{ inputs.descope_base_url }}
       run: |
-        echo "Importing project"
+        echo "Importing snapshot"
         set +e
         SECRETS_INPUT="$(mktemp)"
         jq -r '.inputs.secrets' $GITHUB_EVENT_PATH > "$SECRETS_INPUT"
-        descopecli project import "${{ inputs.project_id }}" --path "${{ inputs.files_path }}" --secrets-input "$SECRETS_INPUT"
+        descopecli project snapshot import "${{ inputs.project_id }}" --path "${{ inputs.files_path }}" --secrets-input "$SECRETS_INPUT"
         result=$?
         rm "$SECRETS_INPUT"
         exit $result
