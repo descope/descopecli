@@ -48,4 +48,4 @@ const examples = `  # Load an existing user by their loginId
 
   # Export all project settings and configurations
   export DESCOPE_MANAGEMENT_KEY=...
-  descopecli project export P2Z1234567890123456789012345`
+  descopecli project snapshot export P2Z1234567890123456789012345`
