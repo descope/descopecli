@@ -1,0 +1,31 @@
+name: Install Descope CLI
+
+description: 'Installs the Descope CLI tool'
+
+author: 'Descope'
+
+inputs:
+  version:
+    description: 'The version of the descopecli tool to use'
+    default: 'latest'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Setup Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.21'
+        cache: false
+
+    - name: Cache Descopecli
+      id: cache-cli
+      uses: actions/cache@v4
+      with:
+        path: ~/go/bin
+        key: ${{ runner.os }}-descopecli-${{ inputs.version }}
+
+    - name: Install Descopecli
+      if: steps.cache-cli.outputs.cache-hit != 'true'
+      shell: bash
+      run: go install github.com/descope/descopecli@${{ inputs.version }}

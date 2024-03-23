@@ -14,6 +14,7 @@ var Flags struct {
 
 func AddCommands(parent *cobra.Command, group *cobra.Group) {
 	accessKey := shared.MakeGroupCommand(group, "access-key", "Commands for creating and managing access keys")
+	parent.AddCommand(accessKey)
 
 	shared.AddCommand(accessKey, Create, "create <name> [-e time] [-t tenants] [-u userId]", "Create a new access key", func(cmd *cobra.Command) {
 		cmd.Args = cobra.ExactArgs(1)
@@ -40,6 +41,4 @@ func AddCommands(parent *cobra.Command, group *cobra.Group) {
 	shared.AddCommand(accessKey, Deactivate, "deactivate <id>", "Deactivate an access key", func(cmd *cobra.Command) {
 		cmd.Args = cobra.ExactArgs(1)
 	})
-
-	parent.AddCommand(accessKey)
 }

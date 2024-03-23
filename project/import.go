@@ -25,7 +25,7 @@ func Validate(args []string) error {
 func runImporter(args []string, validate bool) error {
 	root := Flags.Path
 	if root == "" {
-		root = "env-" + args[0]
+		root = "project-" + args[0]
 	} else {
 		root = filepath.Clean(root)
 	}
@@ -54,7 +54,7 @@ func (im *importer) Run(validate bool) (err error) {
 		WriteDebugFile(im.root, "debug/import.log", im.files)
 	}
 
-	var secrets *descope.ImportProjectSecrets
+	var secrets *descope.SnapshotSecrets
 	if Flags.SecretsInput != "" {
 		secrets, err = im.readSecrets(Flags.SecretsInput)
 		if err != nil {
@@ -62,25 +62,27 @@ func (im *importer) Run(validate bool) (err error) {
 		}
 	}
 
-	req := &descope.ImportProjectRequest{Files: im.files, InputSecrets: secrets}
 	if validate {
+		req := &descope.ValidateSnapshotRequest{Files: im.files, InputSecrets: secrets}
 		return im.Validate(req)
 	}
+
+	req := &descope.ImportSnapshotRequest{Files: im.files, InputSecrets: secrets}
 	return im.Import(req)
 }
 
-func (im *importer) Import(req *descope.ImportProjectRequest) error {
-	fmt.Println("* Importing project...")
-	if err := shared.Descope.Management.Project().Import(context.Background(), req); err != nil {
+func (im *importer) Import(req *descope.ImportSnapshotRequest) error {
+	fmt.Println("* Importing snapshot...")
+	if err := shared.Descope.Management.Project().ImportSnapshot(context.Background(), req); err != nil {
 		return fmt.Errorf("failed to import project: %w", err)
 	}
 	fmt.Println("* Done")
 	return nil
 }
 
-func (im *importer) Validate(req *descope.ImportProjectRequest) error {
+func (im *importer) Validate(req *descope.ValidateSnapshotRequest) error {
 	fmt.Println("* Validating import data...")
-	res, err := shared.Descope.Management.Project().ValidateImport(context.Background(), req)
+	res, err := shared.Descope.Management.Project().ValidateSnapshot(context.Background(), req)
 	if err != nil {
 		return fmt.Errorf("failed to validate project: %w", err)
 	}
@@ -190,7 +192,7 @@ type secretEntry struct {
 	Secrets map[string]string `json:"secrets"`
 }
 
-func (im *importer) readSecrets(path string) (*descope.ImportProjectSecrets, error) {
+func (im *importer) readSecrets(path string) (*descope.SnapshotSecrets, error) {
 	var file map[string]*secretEntry
 
 	fmt.Println("* Reading input secrets...")
@@ -202,17 +204,17 @@ func (im *importer) readSecrets(path string) (*descope.ImportProjectSecrets, err
 		return nil, fmt.Errorf("failed to convert secrets input json %s: %w", path, err)
 	}
 
-	secrets := &descope.ImportProjectSecrets{}
+	secrets := &descope.SnapshotSecrets{}
 	for k, entry := range file {
 		if strings.HasPrefix(k, connectorPrefix) {
 			id := strings.TrimPrefix(k, connectorPrefix)
 			for typ, value := range entry.Secrets {
-				secrets.Connectors = append(secrets.Connectors, &descope.ImportProjectSecret{ID: id, Name: entry.Name, Type: typ, Value: value})
+				secrets.Connectors = append(secrets.Connectors, &descope.SnapshotSecret{ID: id, Name: entry.Name, Type: typ, Value: value})
 			}
 		} else if strings.HasPrefix(k, oauthPrefix) {
 			id := strings.TrimPrefix(k, oauthPrefix)
 			for typ, value := range entry.Secrets {
-				secrets.OAuthProviders = append(secrets.OAuthProviders, &descope.ImportProjectSecret{ID: id, Name: entry.Name, Type: typ, Value: value})
+				secrets.OAuthProviders = append(secrets.OAuthProviders, &descope.SnapshotSecret{ID: id, Name: entry.Name, Type: typ, Value: value})
 			}
 		} else {
 			return nil, fmt.Errorf("unexpected secret type: %s", k)
@@ -231,7 +233,7 @@ func (im *importer) readSecrets(path string) (*descope.ImportProjectSecrets, err
 	return secrets, nil
 }
 
-func (im *importer) writeSecrets(path string, secrets *descope.ImportProjectSecrets) error {
+func (im *importer) writeSecrets(path string, secrets *descope.SnapshotSecrets) error {
 	fmt.Println("* Writing missing secrets output...")
 	file := map[string]*secretEntry{}
 	for _, v := range secrets.Connectors {

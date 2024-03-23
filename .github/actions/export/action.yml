@@ -1,6 +1,6 @@
-name: Export Project
+name: Export Snapshot
 
-description: 'Export settings and configurations from a Descope project'
+description: 'Exports a snapshot of all the settings and configurations for a Descope project'
 
 author: 'Descope'
 
@@ -16,11 +16,11 @@ inputs:
     description: 'The management key for the Descope project'
     required: true
   files_path:
-    description: 'The path to the export files (i.e., the directory containing the environment.json file)'
+    description: 'The path to the snapshot files (i.e., the directory containing the snapshot.json file)'
     default: '.'
   descopecli_version:
     description: 'The version of the descopecli tool to use'
-    default: 'v0.1.0'
+    default: 'latest'
   descope_base_url:
     description: 'The base URL used to communicate with Descope servers (for troubleshooting purposes)'
 
@@ -32,23 +32,10 @@ outputs:
 runs:
   using: 'composite'
   steps:
-    - name: Setup Go
-      uses: actions/setup-go@v5
+    - name: Install Descope CLI
+      uses: descope/descopecli/.github/actions/install@main
       with:
-        go-version: '1.21'
-        cache: false
-
-    - name: Cache Descopecli
-      id: cache-cli
-      uses: actions/cache@v4
-      with:
-        path: ~/go/bin
-        key: ${{ runner.os }}-descopecli-${{ inputs.descopecli_version }}
-
-    - name: Install Descopecli
-      if: steps.cache-cli.outputs.cache-hit != 'true'
-      shell: bash
-      run: go install github.com/descope/descopecli@main
+        version: ${{ inputs.descopecli_version }}
 
     - name: Check State
       shell: bash
@@ -79,16 +66,16 @@ runs:
           exit 1
         fi
 
-    - name: Export Project
+    - name: Export Snapshot
       shell: bash
       env:
         DESCOPE_MANAGEMENT_KEY: ${{ inputs.management_key }}
         DESCOPE_BASE_URL: ${{ inputs.descope_base_url }}
       run: |
-        echo "Exporting project"
+        echo "Exporting snapshot"
         rm -rf "${{ inputs.files_path }}"
         mkdir -p "${{ inputs.files_path }}"
-        descopecli project export "${{ inputs.project_id }}" --path "${{ inputs.files_path }}"
+        descopecli project snapshot export "${{ inputs.project_id }}" --path "${{ inputs.files_path }}"
 
     - name: Check For Changes
       id: check

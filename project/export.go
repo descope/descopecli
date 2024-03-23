@@ -20,7 +20,7 @@ func Export(args []string) error {
 
 	root := Flags.Path
 	if root == "" {
-		root = "env-" + args[0]
+		root = "project-" + args[0]
 		mkdir = true
 	} else {
 		root = filepath.Clean(root)
@@ -51,10 +51,10 @@ type exporter struct {
 }
 
 func (ex *exporter) Export() error {
-	fmt.Println("* Exporting project...")
-	res, err := shared.Descope.Management.Project().Export(context.Background())
+	fmt.Println("* Exporting snapshot...")
+	res, err := shared.Descope.Management.Project().ExportSnapshot(context.Background())
 	if err != nil {
-		return fmt.Errorf("failed to export project: %w", err)
+		return fmt.Errorf("failed to export snapshot: %w", err)
 	}
 
 	if Flags.Debug {

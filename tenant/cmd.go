@@ -13,6 +13,7 @@ var Flags struct {
 
 func AddCommands(parent *cobra.Command, group *cobra.Group) {
 	tenant := shared.MakeGroupCommand(group, "tenant", "Commands for creating and managing tenants")
+	parent.AddCommand(tenant)
 
 	shared.AddCommand(tenant, Create, "create <name>", "Create a new tenant", func(cmd *cobra.Command) {
 		cmd.Args = cobra.ExactArgs(1)
@@ -31,6 +32,4 @@ func AddCommands(parent *cobra.Command, group *cobra.Group) {
 	shared.AddCommand(tenant, LoadAll, "load-all", "Load all tenants", func(cmd *cobra.Command) {
 		cmd.Args = cobra.ExactArgs(0)
 	})
-
-	parent.AddCommand(tenant)
 }
