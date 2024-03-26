@@ -238,7 +238,6 @@ func (im *importer) writeSecrets(path string, secrets *descope.SnapshotSecrets) 
 	file := map[string]*secretEntry{}
 	for _, v := range secrets.Connectors {
 		key := connectorPrefix + v.ID
-		file[key] = &secretEntry{Name: v.Name, Secrets: map[string]string{}}
 		if _, ok := file[key]; !ok {
 			file[key] = &secretEntry{Name: v.Name, Secrets: map[string]string{}}
 		}
@@ -246,7 +245,6 @@ func (im *importer) writeSecrets(path string, secrets *descope.SnapshotSecrets) 
 	}
 	for _, v := range secrets.OAuthProviders {
 		key := oauthPrefix + v.ID
-		file[key] = &secretEntry{Name: v.Name, Secrets: map[string]string{}}
 		if _, ok := file[key]; !ok {
 			file[key] = &secretEntry{Name: v.Name, Secrets: map[string]string{}}
 		}
