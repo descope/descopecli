@@ -2,8 +2,6 @@ package tenant
 
 import (
 	"context"
-	"encoding/json"
-	"fmt"
 
 	"github.com/descope/descopecli/shared"
 	"github.com/descope/go-sdk/descope"
@@ -18,11 +16,12 @@ func Create(args []string) (err error) {
 	} else {
 		tenantID, err = shared.Descope.Management.Tenant().Create(context.Background(), tr)
 	}
-
-	if err == nil {
-		fmt.Printf("* Created new tenant with id: %s\n", tenantID)
+	if err != nil {
+		return err
 	}
-	return err
+
+	shared.ExitWithResult(tenantID, "tenantId", "Created new tenant with id")
+	return nil
 }
 
 func Delete(args []string) error {
@@ -31,25 +30,20 @@ func Delete(args []string) error {
 
 func Load(args []string) error {
 	tenant, err := shared.Descope.Management.Tenant().Load(context.Background(), args[0])
-	if err == nil {
-		b, _ := json.Marshal(tenant)
-		fmt.Printf("* Loaded tenant: %s\n", string(b))
+	if err != nil {
+		return err
 	}
-	return err
+
+	shared.ExitWithResult(tenant, "tenant", "Loaded tenant")
+	return nil
 }
 
 func LoadAll(_ []string) error {
 	res, err := shared.Descope.Management.Tenant().LoadAll(context.Background())
-	if err == nil {
-		if len(res) == 1 {
-			fmt.Printf("* Found 1 tenant\n")
-		} else {
-			fmt.Printf("* Found %d tenants\n", len(res))
-		}
-		for i, tenant := range res {
-			b, _ := json.Marshal(tenant)
-			fmt.Printf("  - Tenant %d: %s\n", i, string(b))
-		}
+	if err != nil {
+		return err
 	}
-	return err
+
+	shared.ExitWithResults(res, "tenants", "Tenant", "Loaded", "tenant", "tenants")
+	return nil
 }

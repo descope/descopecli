@@ -3,7 +3,6 @@ package accesskey
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 
 	"github.com/descope/descopecli/shared"
 	"github.com/descope/go-sdk/descope"
@@ -24,9 +23,8 @@ func Create(args []string) error {
 	m := map[string]any{}
 	json.Unmarshal(b, &m)
 	m["cleartext"] = cleartext
-	b, _ = json.Marshal(m)
-	fmt.Printf("* Created access key: %s\n", string(b))
 
+	shared.ExitWithResult(m, "accessKey", "Created access key")
 	return nil
 }
 
@@ -35,14 +33,12 @@ func Delete(args []string) error {
 }
 
 func Load(args []string) error {
-	res, err := shared.Descope.Management.AccessKey().Load(context.Background(), args[0])
+	key, err := shared.Descope.Management.AccessKey().Load(context.Background(), args[0])
 	if err != nil {
 		return err
 	}
 
-	b, _ := json.Marshal(res)
-	fmt.Printf("* Loaded access key: %s\n", string(b))
-
+	shared.ExitWithResult(key, "accessKey", "Loaded access key")
 	return nil
 }
 
@@ -52,15 +48,6 @@ func LoadAll(_ []string) error {
 		return err
 	}
 
-	if len(res) == 1 {
-		fmt.Printf("* Found 1 access key\n")
-	} else {
-		fmt.Printf("* Found %d access keys\n", len(res))
-	}
-	for i, key := range res {
-		b, _ := json.Marshal(key)
-		fmt.Printf("  - Access key %d: %s\n", int64(i), string(b))
-	}
-
+	shared.ExitWithResults(res, "accessKeys", "Access key", "Loaded", "access key", "access keys")
 	return nil
 }

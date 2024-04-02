@@ -30,7 +30,7 @@ func runImporter(args []string, validate bool) error {
 		root = filepath.Clean(root)
 	}
 	if info, err := os.Stat(root); os.IsNotExist(err) || !info.IsDir() {
-		return errors.New("import path does not exist: " + root)
+		return errors.New("snapshot path does not exist: " + root)
 	}
 
 	im := importer{root: root}
@@ -43,7 +43,7 @@ type importer struct {
 }
 
 func (im *importer) Run(validate bool) (err error) {
-	fmt.Println("* Reading files...")
+	shared.PrintProgress("Reading snapshot files:")
 
 	im.files = map[string]any{}
 	if err := im.readFiles(im.root); err != nil {
@@ -72,48 +72,49 @@ func (im *importer) Run(validate bool) (err error) {
 }
 
 func (im *importer) Import(req *descope.ImportSnapshotRequest) error {
-	fmt.Println("* Importing snapshot...")
+	shared.PrintProgress("Importing snapshot...")
 	if err := shared.Descope.Management.Project().ImportSnapshot(context.Background(), req); err != nil {
-		return fmt.Errorf("failed to import project: %w", err)
+		return err
 	}
-	fmt.Println("* Done")
+	shared.PrintProgress("Done")
 	return nil
 }
 
 func (im *importer) Validate(req *descope.ValidateSnapshotRequest) error {
-	fmt.Println("* Validating import data...")
+	shared.PrintProgress("Validating snapshot...")
 	res, err := shared.Descope.Management.Project().ValidateSnapshot(context.Background(), req)
 	if err != nil {
-		return fmt.Errorf("failed to validate project: %w", err)
+		return err
 	}
 	if res.Ok {
-		fmt.Println("* Done")
+		shared.PrintProgress("Done")
 		return nil
 	}
 
-	fmt.Println("* Validation failed:")
-	for _, f := range res.Failures {
-		fmt.Printf("  - %s\n", f)
-	}
-	if Flags.FailureOutput != "" {
-		var b []byte
+	if shared.Flags.Json {
+		shared.PrintIndented(res)
+	} else {
+		shared.PrintProgress("Validation failed:")
 		for _, f := range res.Failures {
-			b = append(b, f...)
-			b = append(b, '\n')
-		}
-		if err := os.WriteFile(Flags.FailureOutput, b, 0644); err != nil {
-			return fmt.Errorf("failed to write failure output file %s: %w", Flags.FailureOutput, err)
+			shared.PrintItem(f)
 		}
 	}
 
-	if len(res.MissingSecrets.Connectors) > 0 || len(res.MissingSecrets.OAuthProviders) > 0 {
-		if Flags.SecretsOutput == "" {
-			return errors.New("validation failed with missing secrets but no secrets output path was specified")
+	if Flags.FailuresOutput != "" {
+		if err := im.writeFailures(Flags.FailuresOutput, res.Failures); err != nil {
+			return err
 		}
-		im.writeSecrets(Flags.SecretsOutput, res.MissingSecrets)
 	}
 
-	// differentiate validation failures with status code 2, as opposed to 1 for all other errors
+	if Flags.SecretsOutput != "" && (len(res.MissingSecrets.Connectors) > 0 || len(res.MissingSecrets.OAuthProviders) > 0) {
+		if err := im.writeSecrets(Flags.SecretsOutput, res.MissingSecrets); err != nil {
+			return err
+		}
+	}
+
+	shared.PrintProgress("Done")
+
+	// differentiate between validation failures with status code 2, as opposed to 1 for all other errors
 	os.Exit(2)
 	return nil
 }
@@ -121,7 +122,7 @@ func (im *importer) Validate(req *descope.ValidateSnapshotRequest) error {
 func (im *importer) readFiles(path string) error {
 	info, err := os.ReadDir(path)
 	if err != nil {
-		return fmt.Errorf("failed to read import files from path %s: %w", path, err)
+		return fmt.Errorf("failed to read snapshot files from path %s: %w", path, err)
 	}
 
 	for _, entry := range info {
@@ -151,12 +152,12 @@ func (im *importer) shouldIgnorePath(basename string) bool {
 func (im *importer) readFile(fullpath string) error {
 	relpath, err := filepath.Rel(im.root, fullpath)
 	if err != nil {
-		return fmt.Errorf("failed to parse import file path %s: %w", fullpath, err)
+		return fmt.Errorf("failed to parse snapshot file path %s: %w", fullpath, err)
 	}
 
 	bytes, err := os.ReadFile(fullpath)
 	if err != nil {
-		return fmt.Errorf("failed to read import file %s: %w", relpath, err)
+		return fmt.Errorf("failed to read snapshot file %s: %w", relpath, err)
 	}
 
 	skipped := false
@@ -165,7 +166,7 @@ func (im *importer) readFile(fullpath string) error {
 	case ".json":
 		var m map[string]any
 		if err = json.Unmarshal(bytes, &m); err != nil {
-			return fmt.Errorf("failed to convert import json file %s: %w", relpath, err)
+			return fmt.Errorf("failed to convert snapshot json file %s: %w", relpath, err)
 		}
 		im.files[relpath] = m
 	case ".txt", ".html":
@@ -177,7 +178,7 @@ func (im *importer) readFile(fullpath string) error {
 	}
 
 	if !skipped {
-		fmt.Printf("  - %s\n", relpath)
+		shared.PrintItem(relpath)
 	}
 	return nil
 }
@@ -195,7 +196,7 @@ type secretEntry struct {
 func (im *importer) readSecrets(path string) (*descope.SnapshotSecrets, error) {
 	var file map[string]*secretEntry
 
-	fmt.Println("* Reading input secrets...")
+	shared.PrintProgress("Reading input secrets...")
 	bytes, err := os.ReadFile(path)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read secrets input file %s: %w", path, err)
@@ -223,18 +224,31 @@ func (im *importer) readSecrets(path string) (*descope.SnapshotSecrets, error) {
 
 	found := len(secrets.Connectors) + len(secrets.OAuthProviders)
 	if found == 0 {
-		fmt.Println("* No secrets found in input")
+		shared.PrintProgress("No secrets found in input")
 	} else if found == 1 {
-		fmt.Println("* Found 1 secret in input")
+		shared.PrintProgress("Found 1 secret in input")
 	} else {
-		fmt.Printf("* Found %d secrets in input\n", found)
+		shared.PrintProgress(fmt.Sprintf("Found %d secrets in input", found))
 	}
 
 	return secrets, nil
 }
 
+func (im *importer) writeFailures(path string, failures []string) error {
+	shared.PrintProgress("Writing failures output...")
+	var b []byte
+	for _, f := range failures {
+		b = append(b, f...)
+		b = append(b, '\n')
+	}
+	if err := os.WriteFile(path, b, 0644); err != nil {
+		return fmt.Errorf("failed to write failures output file %s: %w", path, err)
+	}
+	return nil
+}
+
 func (im *importer) writeSecrets(path string, secrets *descope.SnapshotSecrets) error {
-	fmt.Println("* Writing missing secrets output...")
+	shared.PrintProgress("Writing secrets output...")
 	file := map[string]*secretEntry{}
 	for _, v := range secrets.Connectors {
 		key := connectorPrefix + v.ID

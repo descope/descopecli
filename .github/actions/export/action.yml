@@ -20,7 +20,7 @@ inputs:
     default: '.'
   descopecli_version:
     description: 'The version of the descopecli tool to use'
-    default: 'latest'
+    default: 'v0.8.2'
   descope_base_url:
     description: 'The base URL used to communicate with Descope servers (for troubleshooting purposes)'
 
@@ -87,7 +87,7 @@ runs:
           git add "${{ inputs.files_path }}"
           git diff HEAD --name-only > $CHANGES_FILE
           git reset HEAD
-          echo "Changes files:"
+          echo "Changed files:"
           cat $CHANGES_FILE | sed -e 's|^|  - |'
           echo changes_file="$CHANGES_FILE" >> $GITHUB_OUTPUT
         else

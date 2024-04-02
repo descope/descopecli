@@ -77,24 +77,54 @@ descopecli tenant create 'AcmeCorp' --id 'acmecorp'
 * Created new tenant with id: acmecorp
 ```
 
+#### List all tenants
+
+```bash
+# use the --json option to get structured JSON output from any command
+descopecli tenant load-all --json
+```
+```json
+{
+  "count": 1,
+  "ok": true,
+  "tenants": [
+    {
+      "id": "acmecorp",
+      "name": "AcmeCorp",
+      "selfProvisioningDomains": [],
+      "authType": "none"
+    }
+  ]
+}
+```
+
 #### Create a user in a tenant
 
 ```bash
 # creates a user and sends them an invitation if configured in the Descope console
-descopecli user create andyr@example.com --name 'Andy Rhoads' -t 'acmecorp'
+descopecli user create 'andyr@example.com' --name 'Andy Rhoads' -t 'acmecorp' --json
 ```
-```
-* Created user:
-  {
+```json
+{
+  "ok": true,
+  "user": {
     "name": "Andy Rhoads",
-    "userId": "U2cm9Iy",
-    "loginIds": ["andyr@example.com"],
     "email": "andyr@example.com",
+    "userId": "U2eY8ZRNUlC9IKqLGzmAww7qgK0T",
+    "loginIds": [
+      "andyr@example.com"
+    ],
     "verifiedEmail": true,
+    "userTenants": [
+      {
+        "tenantId": "acmecorp",
+        "tenantName": "AcmeCorp"
+      }
+    ],
     "status": "invited",
-    "userTenants": [{"tenantId":"acmecorp","tenantName":"AcmeCorp"}],
-    "createdTime": 1708700000
+    "createdTime": 1712070205
   }
+}
 ```
 
 #### List all users
