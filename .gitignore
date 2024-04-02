@@ -37,3 +37,5 @@ vendor/
 
 # Configuration environment files
 *.env
+
+dist/

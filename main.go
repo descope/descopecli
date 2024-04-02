@@ -15,7 +15,7 @@ import (
 func main() {
 	cli := &cobra.Command{
 		Version: shared.Version,
-		Use:     "descopecli",
+		Use:     "descope",
 		Short:   help,
 		Example: examples,
 	}
@@ -45,8 +45,8 @@ const help = "A command line utility for working with the Descope management API
 const examples = `  # Load an existing user by their loginId
   export DESCOPE_PROJECT_ID=...
   export DESCOPE_MANAGEMENT_KEY=...
-  descopecli user load -l name@example.com
+  descope user load -l name@example.com
 
   # Export all project settings and configurations
   export DESCOPE_MANAGEMENT_KEY=...
-  descopecli project snapshot export P2Z1234567890123456789012345`
+  descope project snapshot export P2Z1234567890123456789012345`

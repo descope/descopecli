@@ -1,0 +1,49 @@
+archives:
+  - id: archive
+    name_template: "{{ .Binary }}-{{ .Tag }}-{{ .Os }}-{{ .Arch }}"
+    format: binary
+builds:
+  - id: descope
+    binary: descope
+    env:
+      - CGO_ENABLED=0
+      - GO111MODULE=on
+    goarch:
+      - amd64
+      - arm64
+    goos:
+      - darwin
+      - windows
+      - linux
+dockers:
+  - image_templates:
+      - "ghcr.io/descope/cli:{{ .Tag }}"
+      - "ghcr.io/descope/cli:v{{ .Major }}"
+      - "ghcr.io/descope/cli:v{{ .Major }}.{{ .Minor }}"
+      - "ghcr.io/descope/cli:latest"
+    skip_push: true
+    build_flag_templates:
+      - "--pull"
+      - "--label=org.opencontainers.image.created={{.Date}}"
+      - "--label=org.opencontainers.image.title={{.ProjectName}}"
+      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+      - "--label=org.opencontainers.image.version={{.Version}}"
+upx:
+  - enabled: true
+changelog:
+  disable: true
+snapshot:
+  name_template: "{{ .Tag }}-SNAPSHOT"
+nfpms:
+  - id: descope
+    package_name: descope
+    file_name_template: "{{ .ConventionalFileName }}"
+    vendor: Descope, Inc.
+    homepage: https://www.descope.com/
+    maintainer: Descope <info@descope.com>
+    description: A command line utility for working with the Descope management APIs
+    license: MIT
+    formats:
+      - apk
+      - deb
+      - rpm
