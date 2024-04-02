@@ -20,7 +20,7 @@ func Create(args []string) (err error) {
 		return err
 	}
 
-	shared.PrintResult(tenantID, "tenantId", "Created new tenant with id")
+	shared.ExitWithResult(tenantID, "tenantId", "Created new tenant with id")
 	return nil
 }
 
@@ -34,7 +34,7 @@ func Load(args []string) error {
 		return err
 	}
 
-	shared.PrintResult(tenant, "tenant", "Loaded tenant")
+	shared.ExitWithResult(tenant, "tenant", "Loaded tenant")
 	return nil
 }
 
@@ -44,6 +44,6 @@ func LoadAll(_ []string) error {
 		return err
 	}
 
-	shared.PrintResults(res, "tenants", "Tenant", "Loaded", "tenant", "tenants")
+	shared.ExitWithResults(res, "tenants", "Tenant", "Loaded", "tenant", "tenants")
 	return nil
 }

@@ -27,7 +27,7 @@ func PrintIndented(v any) {
 	fmt.Println(string(b))
 }
 
-func PrintResult(result any, key string, message string) {
+func ExitWithResult(result any, key string, message string) {
 	if Flags.Json {
 		PrintIndented(map[string]any{"ok": true, key: result})
 	} else {
@@ -37,7 +37,7 @@ func PrintResult(result any, key string, message string) {
 	os.Exit(0)
 }
 
-func PrintResults[T any](results []T, key, noun, verb, singular, plural string) {
+func ExitWithResults[T any](results []T, key, noun, verb, singular, plural string) {
 	if Flags.Json {
 		PrintIndented(map[string]any{"ok": true, "count": len(results), key: results})
 	} else {
@@ -54,7 +54,7 @@ func PrintResults[T any](results []T, key, noun, verb, singular, plural string) 
 	os.Exit(0)
 }
 
-func PrintStatus(err error) {
+func ExitWithStatus(err error) {
 	if Flags.Json {
 		if err != nil {
 			PrintIndented(map[string]any{"ok": false, "error": err.Error()})

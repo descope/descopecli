@@ -24,7 +24,7 @@ func Create(args []string) error {
 	json.Unmarshal(b, &m)
 	m["cleartext"] = cleartext
 
-	shared.PrintResult(m, "accessKey", "Created access key")
+	shared.ExitWithResult(m, "accessKey", "Created access key")
 	return nil
 }
 
@@ -38,7 +38,7 @@ func Load(args []string) error {
 		return err
 	}
 
-	shared.PrintResult(key, "accessKey", "Loaded access key")
+	shared.ExitWithResult(key, "accessKey", "Loaded access key")
 	return nil
 }
 
@@ -48,6 +48,6 @@ func LoadAll(_ []string) error {
 		return err
 	}
 
-	shared.PrintResults(res, "accessKeys", "Access key", "Loaded", "access key", "access keys")
+	shared.ExitWithResults(res, "accessKeys", "Access key", "Loaded", "access key", "access keys")
 	return nil
 }

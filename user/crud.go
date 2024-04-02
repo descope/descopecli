@@ -25,7 +25,7 @@ func Create(args []string) error {
 		return err
 	}
 
-	shared.PrintResult(user, "user", "Created user")
+	shared.ExitWithResult(user, "user", "Created user")
 	return nil
 }
 
@@ -55,7 +55,7 @@ func Load(_ []string) error {
 		return err
 	}
 
-	shared.PrintResult(user, "user", "Loaded user")
+	shared.ExitWithResult(user, "user", "Loaded user")
 	return nil
 }
 
@@ -65,6 +65,6 @@ func LoadAll(_ []string) error {
 		return err
 	}
 
-	shared.PrintResults(res, "users", "User", "Loaded", "user", "users")
+	shared.ExitWithResults(res, "users", "User", "Loaded", "user", "users")
 	return nil
 }

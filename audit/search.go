@@ -13,6 +13,6 @@ func Search(args []string) error {
 		return err
 	}
 
-	shared.PrintResults(res, "records", "Record", "Found", "record", "records")
+	shared.ExitWithResults(res, "records", "Record", "Found", "record", "records")
 	return nil
 }

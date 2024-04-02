@@ -18,7 +18,7 @@ func Clone(args []string) error {
 		return err
 	}
 
-	shared.PrintResult(res, "result", "Cloned project")
+	shared.ExitWithResult(res, "result", "Cloned project")
 	return nil
 }
 

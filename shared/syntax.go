@@ -14,7 +14,7 @@ func AddCommand(parent *cobra.Command, action func([]string) error, use string, 
 		PreRunE:               DefaultPreRun,
 		Run: func(cmd *cobra.Command, args []string) {
 			err := action(args)
-			PrintStatus(err)
+			ExitWithStatus(err)
 			if err != nil {
 				os.Exit(1)
 			}
