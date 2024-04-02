@@ -3,7 +3,7 @@ package project
 import (
 	"bufio"
 	"context"
-	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -14,16 +14,20 @@ import (
 
 func Clone(args []string) error {
 	res, err := shared.Descope.Management.Project().Clone(context.Background(), args[1], descope.ProjectTag(Flags.Tag))
-	if err == nil {
-		b, _ := json.Marshal(res)
-		fmt.Printf("* Cloned project: %s\n", string(b))
+	if err != nil {
+		return err
 	}
-	return err
+
+	shared.PrintResult(res, "result", "Cloned project")
+	return nil
 }
 
 func Delete(args []string) error {
 	if !Flags.Force {
-		fmt.Printf("Are you sure you want to delete project %s (this cannot be undone): [y/N] ", args[0])
+		if shared.Flags.Json {
+			return errors.New("the --force flag is required when using --json to delete a project")
+		}
+		shared.PrintProgress(fmt.Sprintf("Are you sure you want to delete project %s (this cannot be undone): [y/N] ", args[0]))
 		reader := bufio.NewReader(os.Stdin)
 		response, _ := reader.ReadString('\n')
 		response = strings.ToLower(strings.TrimSpace(response))
@@ -31,9 +35,11 @@ func Delete(args []string) error {
 			return nil
 		}
 	}
-	err := shared.Descope.Management.Project().Delete(context.Background())
-	if err == nil {
-		fmt.Printf("* Deleted project: %s\n", args[0])
+
+	if err := shared.Descope.Management.Project().Delete(context.Background()); err != nil {
+		return err
 	}
-	return err
+
+	shared.PrintProgress(fmt.Sprintf("Deleted project %s", args[0]))
+	return nil
 }

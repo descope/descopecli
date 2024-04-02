@@ -51,21 +51,23 @@ type exporter struct {
 }
 
 func (ex *exporter) Export() error {
-	fmt.Println("* Exporting snapshot...")
+	shared.PrintProgress("Exporting snapshot...")
 	res, err := shared.Descope.Management.Project().ExportSnapshot(context.Background())
 	if err != nil {
-		return fmt.Errorf("failed to export snapshot: %w", err)
+		return err
 	}
 
 	if Flags.Debug {
 		WriteDebugFile(ex.root, "debug/export.log", res.Files)
 	}
 
-	fmt.Println("* Writing files...")
+	shared.PrintProgress("Writing snapshot files:")
+
 	paths := maps.Keys(res.Files)
 	sort.Strings(paths)
+
 	for _, path := range paths {
-		fmt.Printf("  - %s\n", path)
+		shared.PrintItem(path)
 		data := res.Files[path]
 		if object, ok := data.(map[string]any); ok {
 			if err := ex.writeObject(path, object); err != nil {
@@ -80,8 +82,7 @@ func (ex *exporter) Export() error {
 		}
 	}
 
-	fmt.Println("* Done")
-
+	shared.PrintProgress("Done")
 	return nil
 }
 

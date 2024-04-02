@@ -6,6 +6,7 @@ import (
 	"github.com/descope/descopecli/accesskey"
 	"github.com/descope/descopecli/audit"
 	"github.com/descope/descopecli/project"
+	"github.com/descope/descopecli/shared"
 	"github.com/descope/descopecli/tenant"
 	"github.com/descope/descopecli/user"
 	"github.com/spf13/cobra"
@@ -13,7 +14,7 @@ import (
 
 func main() {
 	cli := &cobra.Command{
-		Version: "0.8.0",
+		Version: shared.Version,
 		Use:     "descopecli",
 		Short:   help,
 		Example: examples,

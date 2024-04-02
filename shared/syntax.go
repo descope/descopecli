@@ -1,6 +1,8 @@
 package shared
 
 import (
+	"os"
+
 	"github.com/spf13/cobra"
 )
 
@@ -10,12 +12,17 @@ func AddCommand(parent *cobra.Command, action func([]string) error, use string, 
 		Short:                 help,
 		DisableFlagsInUseLine: true,
 		PreRunE:               DefaultPreRun,
-		RunE: func(_ *cobra.Command, args []string) error {
-			return action(args)
+		Run: func(cmd *cobra.Command, args []string) {
+			err := action(args)
+			PrintStatus(err)
+			if err != nil {
+				os.Exit(1)
+			}
 		},
 	}
 	cmd.Args = cobra.ExactArgs(0)
 	setup(cmd)
+	cmd.Flags().BoolVarP(&Flags.Json, "json", "j", false, "use JSON output format")
 	hideHelpFlag(cmd)
 	parent.AddCommand(cmd)
 }

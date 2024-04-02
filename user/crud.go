@@ -2,9 +2,7 @@ package user
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
-	"fmt"
 
 	"github.com/descope/descopecli/shared"
 	"github.com/descope/go-sdk/descope"
@@ -16,20 +14,18 @@ func Create(args []string) error {
 		tenants = append(tenants, &descope.AssociatedTenant{TenantID: tenantID})
 	}
 
-	user := &descope.UserRequest{}
-	user.Email = Flags.Email
-	user.Phone = Flags.Phone
-	user.Name = Flags.Name
-	user.Tenants = tenants
+	u := &descope.UserRequest{}
+	u.Email = Flags.Email
+	u.Phone = Flags.Phone
+	u.Name = Flags.Name
+	u.Tenants = tenants
 
-	res, err := shared.Descope.Management.User().Create(context.Background(), args[0], user)
+	user, err := shared.Descope.Management.User().Create(context.Background(), args[0], u)
 	if err != nil {
 		return err
 	}
 
-	b, _ := json.Marshal(res)
-	fmt.Printf("* Created user: %s\n", string(b))
-
+	shared.PrintResult(user, "user", "Created user")
 	return nil
 }
 
@@ -59,9 +55,7 @@ func Load(_ []string) error {
 		return err
 	}
 
-	b, _ := json.Marshal(user)
-	fmt.Printf("* Loaded user: %s\n", string(b))
-
+	shared.PrintResult(user, "user", "Loaded user")
 	return nil
 }
 
@@ -71,15 +65,6 @@ func LoadAll(_ []string) error {
 		return err
 	}
 
-	if len(res) == 1 {
-		fmt.Printf("* Found 1 user\n")
-	} else {
-		fmt.Printf("* Found %d users\n", len(res))
-	}
-	for i, user := range res {
-		b, _ := json.Marshal(user)
-		fmt.Printf("  - User %d: %s\n", i+Flags.Page*Flags.Limit, string(b))
-	}
-
+	shared.PrintResults(res, "users", "User", "Loaded", "user", "users")
 	return nil
 }
