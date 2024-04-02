@@ -29,7 +29,7 @@ inputs:
     type: boolean
   descopecli_version:
     description: 'The version of the descopecli tool to use'
-    default: 'latest'
+    default: 'v0.8.2'
   descope_base_url:
     description: 'The base URL used to communicate with Descope servers (for troubleshooting purposes)'
 
@@ -84,17 +84,17 @@ runs:
         set +e
         SECRETS_INPUT="$(mktemp)"
         SECRETS_OUTPUT="$(mktemp)"
-        FAILURE_OUTPUT="$(mktemp)"
+        FAILURES_OUTPUT="$(mktemp)"
         jq -r '.inputs.secrets' $GITHUB_EVENT_PATH > "$SECRETS_INPUT"
-        descopecli project snapshot validate "${{ inputs.project_id }}" --path "${{ inputs.files_path }}" --secrets-input "$SECRETS_INPUT" --secrets-output "$SECRETS_OUTPUT" --failure-output "$FAILURE_OUTPUT"
+        descopecli project snapshot validate "${{ inputs.project_id }}" --path "${{ inputs.files_path }}" --secrets-input "$SECRETS_INPUT" --secrets-output "$SECRETS_OUTPUT" --failures-output "$FAILURES_OUTPUT"
         result=$?
         rm "$SECRETS_INPUT"
         if [ "$result" = "2" ]; then
           if [ -f "$SECRETS_OUTPUT" ] && [ -s "$SECRETS_OUTPUT" ]; then
             echo missing_secrets_file="$SECRETS_OUTPUT" >> $GITHUB_OUTPUT
           fi
-          if [ -f "$FAILURE_OUTPUT" ] && [ -s "$FAILURE_OUTPUT" ]; then
-            echo failure_file="$FAILURE_OUTPUT" >> $GITHUB_OUTPUT
+          if [ -f "$FAILURES_OUTPUT" ] && [ -s "$FAILURES_OUTPUT" ]; then
+            echo failure_file="$FAILURES_OUTPUT" >> $GITHUB_OUTPUT
           fi
         fi
         exit $result
