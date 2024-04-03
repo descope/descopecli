@@ -50,6 +50,7 @@ signs:
     artifacts: binary
 docker_signs:
   - artifacts: all
+    args: ["sign", "--upload=false", "${artifact}"]
 changelog:
   disable: true
 snapshot:
