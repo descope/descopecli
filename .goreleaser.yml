@@ -34,7 +34,21 @@ docker_manifests:
     image_templates:
       - "ghcr.io/descope/cli:{{ .Tag }}-amd64"
       - "ghcr.io/descope/cli:{{ .Tag }}-arm64"
-
+signs:
+  - cmd: cosign
+    signature: "${artifact}.sig"
+    certificate: "${artifact}.pem"
+    args:
+      [
+        "sign-blob",
+        "--oidc-issuer=https://token.actions.githubusercontent.com",
+        "--output-certificate=${certificate}",
+        "--output-signature=${signature}",
+        "${artifact}",
+      ]
+    artifacts: all
+docker_signs:
+  - artifacts: all
 upx:
   - enabled: true
 changelog:

@@ -1,5 +1,6 @@
 name: release
 on:
+  pull_request:
   push:
     tags:
       - v*.*.*
@@ -19,8 +20,8 @@ jobs:
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v4
-      - name: Unshallow clone for tags
-        run: git fetch --prune --unshallow --tags
+        with:
+          fetch-depth: 0
       - name: Install Go
         uses: actions/setup-go@v5
         with:
@@ -35,8 +36,16 @@ jobs:
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v5
         with:
-          args: -p 3 release --clean
+          install-only: true
           version: latest
+      - name: Run GoReleaser
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+        run: |
+          goreleaser release --clean
+      - name: Run GoReleaser
+        if: github.event_name == 'pull_request'
+        run: |
+          goreleaser release --snapshot --clean
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
