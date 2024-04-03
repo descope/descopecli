@@ -1,3 +1,6 @@
+env:
+  - COSIGN_YES=true
+
 archives:
   - id: archive
     name_template: "{{ .Binary }}-{{ .Tag }}-{{ .Os }}-{{ .Arch }}"
@@ -5,9 +8,6 @@ archives:
 builds:
   - id: descope
     binary: descope
-    env:
-      - CGO_ENABLED=0
-      - GO111MODULE=on
     goarch:
       - amd64
       - arm64
@@ -34,9 +34,22 @@ docker_manifests:
     image_templates:
       - "ghcr.io/descope/cli:{{ .Tag }}-amd64"
       - "ghcr.io/descope/cli:{{ .Tag }}-arm64"
-
-upx:
-  - enabled: true
+signs:
+  - cmd: cosign
+    signature: "${artifact}.sig"
+    certificate: "${artifact}.pem"
+    args:
+      [
+        "sign-blob",
+        "--output-signature",
+        "${artifact}.sig",
+        "--output-certificate",
+        "${artifact}.pem",
+        "${artifact}",
+      ]
+    artifacts: binary
+docker_signs:
+  - artifacts: all
 changelog:
   disable: true
 snapshot:
@@ -56,9 +69,9 @@ nfpms:
       - rpm
 brews:
   - name: descope
-    url_template: "https://github.com/descope/cli/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
-    directory: Formula
-    homepage: "https://www.descope..com/"
+    url_template: "https://github.com/descope/descopecli/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
+    directory: Formula/d/
+    homepage: https://www.descope.com/
     description: A command line utility for working with the Descope management APIs
     license: "MIT"
     skip_upload: true
