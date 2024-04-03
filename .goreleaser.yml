@@ -1,0 +1,72 @@
+archives:
+  - id: archive
+    name_template: "{{ .Binary }}-{{ .Tag }}-{{ .Os }}-{{ .Arch }}"
+    format: binary
+builds:
+  - id: descope
+    binary: descope
+    env:
+      - CGO_ENABLED=0
+      - GO111MODULE=on
+    goarch:
+      - amd64
+      - arm64
+    goos:
+      - darwin
+      - windows
+      - linux
+dockers:
+  - image_templates:
+      - "ghcr.io/descope/cli:{{ .Tag }}-amd64"
+    use: buildx
+    build_flag_templates:
+      - "--pull"
+      - "--platform=linux/amd64"
+  - image_templates:
+      - "ghcr.io/descope/cli:{{ .Tag }}-arm64"
+    use: buildx
+    build_flag_templates:
+      - "--pull"
+      - "--platform=linux/arm64"
+    goarch: arm64
+docker_manifests:
+  - name_template: "ghcr.io/descope/cli:{{ .Tag }}"
+    image_templates:
+      - "ghcr.io/descope/cli:{{ .Tag }}-amd64"
+      - "ghcr.io/descope/cli:{{ .Tag }}-arm64"
+
+upx:
+  - enabled: true
+changelog:
+  disable: true
+snapshot:
+  name_template: "{{ .Tag }}-SNAPSHOT"
+nfpms:
+  - id: descope
+    package_name: descope
+    file_name_template: "{{ .ConventionalFileName }}"
+    vendor: Descope, Inc.
+    homepage: https://www.descope.com/
+    maintainer: Descope <info@descope.com>
+    description: A command line utility for working with the Descope management APIs
+    license: MIT
+    formats:
+      - apk
+      - deb
+      - rpm
+brews:
+  - name: descope
+    url_template: "https://github.com/descope/cli/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
+    directory: Formula
+    homepage: "https://www.descope..com/"
+    description: A command line utility for working with the Descope management APIs
+    license: "MIT"
+    skip_upload: true
+    repository:
+      owner: descope
+      name: homebrew
+release:
+  draft: true
+  replace_existing_draft: true
+  replace_existing_artifacts: true
+report_sizes: true
