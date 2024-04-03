@@ -71,7 +71,7 @@ brews:
   - name: descope
     url_template: "https://github.com/descope/descopecli/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
     directory: Formula/d/
-    homepage: "https://www.descope..com/"
+    homepage: https://www.descope.com/
     description: A command line utility for working with the Descope management APIs
     license: "MIT"
     skip_upload: true
