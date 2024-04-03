@@ -74,10 +74,6 @@ nfpms:
       - apk
       - deb
       - rpm
-    contents:
-      - src: /usr/bin/descope-linux-{{ .Arch }}
-        dst: /usr/bin/descope
-        type: "symlink"
 brews:
   - name: descope
     url_template: "https://github.com/descope/cli/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
