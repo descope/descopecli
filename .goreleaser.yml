@@ -8,9 +8,6 @@ archives:
 builds:
   - id: descope
     binary: descope
-    env:
-      - CGO_ENABLED=0
-      - GO111MODULE=on
     goarch:
       - amd64
       - arm64
@@ -53,8 +50,6 @@ signs:
     artifacts: binary
 docker_signs:
   - artifacts: all
-upx:
-  - enabled: true
 changelog:
   disable: true
 snapshot:
