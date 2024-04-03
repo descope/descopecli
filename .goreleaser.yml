@@ -1,3 +1,6 @@
+env:
+  - COSIGN_YES=true
+
 archives:
   - id: archive
     name_template: "{{ .Binary }}-{{ .Tag }}-{{ .Os }}-{{ .Arch }}"
@@ -34,6 +37,8 @@ docker_manifests:
     image_templates:
       - "ghcr.io/descope/cli:{{ .Tag }}-amd64"
       - "ghcr.io/descope/cli:{{ .Tag }}-arm64"
+sboms:
+  - artifacts: binary
 signs:
   - cmd: cosign
     signature: "${artifact}.sig"
@@ -41,12 +46,13 @@ signs:
     args:
       [
         "sign-blob",
-        "--oidc-issuer=https://token.actions.githubusercontent.com",
-        "--output-certificate=${certificate}",
-        "--output-signature=${signature}",
+        "--output-signature",
+        "${artifact}.sig",
+        "--output-certificate",
+        "${artifact}.pem",
         "${artifact}",
       ]
-    artifacts: all
+    artifacts: binary
 docker_signs:
   - artifacts: all
 upx:
@@ -68,6 +74,10 @@ nfpms:
       - apk
       - deb
       - rpm
+    contents:
+      - src: /usr/bin/descope-linux-{{ .Arch }}
+        dst: /usr/bin/descope
+        type: "symlink"
 brews:
   - name: descope
     url_template: "https://github.com/descope/cli/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
