@@ -37,8 +37,6 @@ docker_manifests:
     image_templates:
       - "ghcr.io/descope/cli:{{ .Tag }}-amd64"
       - "ghcr.io/descope/cli:{{ .Tag }}-arm64"
-sboms:
-  - artifacts: binary
 signs:
   - cmd: cosign
     signature: "${artifact}.sig"
