@@ -17,17 +17,24 @@ builds:
       - linux
 dockers:
   - image_templates:
-      - "ghcr.io/descope/cli:{{ .Tag }}"
-      - "ghcr.io/descope/cli:v{{ .Major }}"
-      - "ghcr.io/descope/cli:v{{ .Major }}.{{ .Minor }}"
-      - "ghcr.io/descope/cli:latest"
-    skip_push: true
+      - "ghcr.io/descope/cli:{{ .Tag }}-amd64"
+    use: buildx
     build_flag_templates:
       - "--pull"
-      - "--label=org.opencontainers.image.created={{.Date}}"
-      - "--label=org.opencontainers.image.title={{.ProjectName}}"
-      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
-      - "--label=org.opencontainers.image.version={{.Version}}"
+      - "--platform=linux/amd64"
+  - image_templates:
+      - "ghcr.io/descope/cli:{{ .Tag }}-arm64"
+    use: buildx
+    build_flag_templates:
+      - "--pull"
+      - "--platform=linux/arm64"
+    goarch: arm64
+docker_manifests:
+  - name_template: "ghcr.io/descope/cli:{{ .Tag }}"
+    image_templates:
+      - "ghcr.io/descope/cli:{{ .Tag }}-amd64"
+      - "ghcr.io/descope/cli:{{ .Tag }}-arm64"
+
 upx:
   - enabled: true
 changelog:
@@ -47,3 +54,19 @@ nfpms:
       - apk
       - deb
       - rpm
+brews:
+  - name: descope
+    url_template: "https://github.com/descope/cli/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
+    directory: Formula
+    homepage: "https://www.descope..com/"
+    description: A command line utility for working with the Descope management APIs
+    license: "MIT"
+    skip_upload: true
+    repository:
+      owner: descope
+      name: homebrew
+release:
+  draft: true
+  replace_existing_draft: true
+  replace_existing_artifacts: true
+report_sizes: true
