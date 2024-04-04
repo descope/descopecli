@@ -79,6 +79,8 @@ brews:
     repository:
       owner: descope
       name: homebrew
+    test: |
+      system "#{bin}/descope -v"
 release:
   draft: true
   replace_existing_draft: true
