@@ -143,7 +143,7 @@ descope user create 'andyr@example.com' --name 'Andy Rhoads' -t 'acmecorp' --jso
 descope user load-all --limit 10 --page 0
 ```
 ```
-* Found 3 users
+* Loaded 3 users
   - User 0: { "name": ... }
   - User 1: { "name": ... }
   - User 2: { "name": ... }
@@ -177,8 +177,7 @@ descope audit search 'andyr' --json
       "action": "UserCreated",
       "loginIds": [
         "andyr@example.com"
-      ],
-      // ...
+      ]
     }
   ]
 }
