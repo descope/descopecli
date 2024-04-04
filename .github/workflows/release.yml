@@ -54,6 +54,7 @@ jobs:
           path: dist/*
 
   pages:
+    needs: publish
     concurrency:
       group: "pages"
       cancel-in-progress: false
