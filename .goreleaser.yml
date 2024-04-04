@@ -1,10 +1,21 @@
+project_name: descope
+
+before:
+  hooks:
+    - go mod tidy
+
 env:
+  - GO111MODULE=on
   - COSIGN_YES=true
+
+metadata:
+  mod_timestamp: "{{ .CommitTimestamp }}"
 
 archives:
   - id: archive
     name_template: "{{ .Binary }}-{{ .Tag }}-{{ .Os }}-{{ .Arch }}"
     format: binary
+
 builds:
   - id: descope
     binary: descope
@@ -21,19 +32,35 @@ dockers:
     use: buildx
     build_flag_templates:
       - "--pull"
+      - "--label=org.opencontainers.image.created={{.Date}}"
+      - "--label=org.opencontainers.image.name={{.ProjectName}}"
+      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+      - "--label=org.opencontainers.image.version={{.Version}}"
+      - "--label=org.opencontainers.image.source={{.GitURL}}"
       - "--platform=linux/amd64"
   - image_templates:
       - "ghcr.io/descope/cli:{{ .Tag }}-arm64"
     use: buildx
     build_flag_templates:
       - "--pull"
+      - "--label=org.opencontainers.image.created={{.Date}}"
+      - "--label=org.opencontainers.image.name={{.ProjectName}}"
+      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+      - "--label=org.opencontainers.image.version={{.Version}}"
+      - "--label=org.opencontainers.image.source={{.GitURL}}"
       - "--platform=linux/arm64"
     goarch: arm64
+
 docker_manifests:
   - name_template: "ghcr.io/descope/cli:{{ .Tag }}"
     image_templates:
       - "ghcr.io/descope/cli:{{ .Tag }}-amd64"
       - "ghcr.io/descope/cli:{{ .Tag }}-arm64"
+  - name_template: "ghcr.io/descope/cli:latest"
+    image_templates:
+      - "ghcr.io/descope/cli:{{ .Tag }}-amd64"
+      - "ghcr.io/descope/cli:{{ .Tag }}-arm64"
+
 signs:
   - cmd: cosign
     signature: "${artifact}.sig"
@@ -48,13 +75,11 @@ signs:
         "${artifact}",
       ]
     artifacts: binary
+
 docker_signs:
   - artifacts: all
     args: ["sign", "--upload=false", "${artifact}"]
-changelog:
-  disable: true
-snapshot:
-  name_template: "{{ .Tag }}-SNAPSHOT"
+
 nfpms:
   - id: descope
     package_name: descope
@@ -68,21 +93,43 @@ nfpms:
       - apk
       - deb
       - rpm
-brews:
-  - name: descope
-    url_template: "https://github.com/descope/descopecli/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
-    directory: Formula/d/
-    homepage: https://www.descope.com/
-    description: A command line utility for working with the Descope management APIs
-    license: "MIT"
-    skip_upload: true
-    repository:
-      owner: descope
-      name: homebrew
-    test: |
-      system "#{bin}/descope -v"
+
 release:
   draft: true
   replace_existing_draft: true
   replace_existing_artifacts: true
-report_sizes: true
+
+changelog:
+  sort: asc
+  use: github
+  filters:
+    exclude:
+      - "^test:"
+      - "^test\\("
+      - "^chore"
+      - "merge conflict"
+      - Merge pull request
+      - Merge remote-tracking branch
+      - Merge branch
+      - go mod tidy
+  groups:
+    - title: Dependency updates
+      regexp: '^.*?(feat|fix|chore)\(deps\)!?:.+$'
+      order: 300
+    - title: "New Features"
+      regexp: '^.*?feat(\(.+\))??!?:.+$'
+      order: 100
+    - title: "Security updates"
+      regexp: '^.*?sec(\(.+\))??!?:.+$'
+      order: 150
+    - title: "Bug fixes"
+      regexp: '^.*?(fix|refactor)(\(.+\))??!?:.+$'
+      order: 200
+    - title: "Documentation updates"
+      regexp: ^.*?docs?(\(.+\))??!?:.+$
+      order: 400
+    - title: "Build process updates"
+      regexp: ^.*?(build|ci)(\(.+\))??!?:.+$
+      order: 400
+    - title: Other work
+      order: 9999
