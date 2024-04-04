@@ -5,16 +5,15 @@ on:
     tags:
       - v*.*.*
 
-permissions:
-  contents: write
-  id-token: write
-  packages: write
-
 env:
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 jobs:
   publish:
+    permissions:
+      contents: read
+      id-token: write
+      packages: write
     name: Publish
     runs-on: ubuntu-latest
     steps:
@@ -54,6 +53,11 @@ jobs:
           path: dist/*
 
   pages:
+    permissions:
+      contents: read
+      id-token: write
+      packages: write
+      pages: write
     needs: publish
     concurrency:
       group: "pages"
