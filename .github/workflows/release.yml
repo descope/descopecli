@@ -51,7 +51,7 @@ jobs:
           name: release
           path: dist/*
 
-  packafges:
+  packages:
     permissions:
       contents: read
       packages: write
