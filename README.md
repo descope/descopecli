@@ -1,13 +1,13 @@
 
 # Descope CLI
 
-The `descopecli` tool provides a convenient way to perform common tasks on your Descope project.
+The `descope` command line tool provides a convenient way to perform common tasks on your Descope project.
 
 ## Getting Started
 
 ### Requirements
 
-- The Descope project's `Project ID` is required by `descopecli` to know which project
+- The Descope project's `Project ID` is required by `descope` to know which project
   to work with. You can find it in the [project page](https://app.descope.com/settings/project)
   in the Descope console.
 - You'll also need a valid Descope management key for the above project. You can create
@@ -16,7 +16,9 @@ The `descopecli` tool provides a convenient way to perform common tasks on your 
 
 ### Installing
 
-For the moment, the `descopecli` tool requires the `go` compiler to be installed.
+The `descope` tool is available as a downloadable binary from the [releases page](https://github.com/descope/descopecli/releases/latest).
+
+Alternatively, you can build it directly from source with the `go` compiler.
 
 1.  Verify that you have Go 1.21 or newer installed:
 
@@ -26,16 +28,23 @@ For the moment, the `descopecli` tool requires the `go` compiler to be installed
 
     If `go` is not installed follow the instructions on the [Go website](https://go.dev/dl).
 
-2.  Install `descopecli` with `go install`:
+2.  Clone or download the repository:
+
+    ```bash
+    git clone https://github.com/descope/descopecli
+    cd descopecli
+    ``` 
+
+3.  Install `descope` with `make install`:
 
     ```bash
     # installs to $GOPATH/bin by default
-    go install github.com/descope/descopecli
+    make install
     ```
 
 ### Usage
 
-All `descopecli` commands expect the Descope management key to be provided in
+All `descope` commands expect the Descope management key to be provided in
 the `DESCOPE_MANAGEMENT_KEY` environment variable. You'll have to provide your
 Descope project's unique id either in the `DESCOPE_PROJECT_ID` environment
 variable or as a command argument, depending on the command.
@@ -43,13 +52,13 @@ variable or as a command argument, depending on the command.
 ```bash
 export DESCOPE_MANAGEMENT_KEY=...
 export DESCOPE_PROJECT_ID=...
-descopecli help
+descope help
 ```
 ```
 A command line utility for working with the Descope management APIs
 
 Usage:
-  descopecli [command]
+  descope [command]
 
 Entity Commands:
   access-key  Commands for creating and managing access keys
@@ -71,7 +80,7 @@ Additional Commands:
 
 ```bash
 # creates a new tenant with a predefined tenantId
-descopecli tenant create 'AcmeCorp' --id 'acmecorp'
+descope tenant create 'AcmeCorp' --id 'acmecorp'
 ```
 ```
 * Created new tenant with id: acmecorp
@@ -81,7 +90,7 @@ descopecli tenant create 'AcmeCorp' --id 'acmecorp'
 
 ```bash
 # use the --json option to get structured JSON output from any command
-descopecli tenant load-all --json
+descope tenant load-all --json
 ```
 ```json
 {
@@ -102,7 +111,7 @@ descopecli tenant load-all --json
 
 ```bash
 # creates a user and sends them an invitation if configured in the Descope console
-descopecli user create 'andyr@example.com' --name 'Andy Rhoads' -t 'acmecorp' --json
+descope user create 'andyr@example.com' --name 'Andy Rhoads' -t 'acmecorp' --json
 ```
 ```json
 {
@@ -131,10 +140,10 @@ descopecli user create 'andyr@example.com' --name 'Andy Rhoads' -t 'acmecorp' --
 
 ```bash
 # returns a page of user results
-descopecli user load-all --limit 10 --page 0
+descope user load-all --limit 10 --page 0
 ```
 ```
-* Found 3 users
+* Loaded 3 users
   - User 0: { "name": ... }
   - User 1: { "name": ... }
   - User 2: { "name": ... }
@@ -143,30 +152,35 @@ descopecli user load-all --limit 10 --page 0
 ### Manage project settings
 
 ```bash
-# to prevent mistakes these command require the projectId as an argument,
-# rather than as an environment variable
-descopecli project snapshot export P2abc... --path ./descope_export
+# to prevent mistakes some project commands require the projectId as
+# an argument, rather than as an environment variable
+
+# export a snapshot of all the project's settings and configurations
+descope project snapshot export P2abc... --path ./descope_export
 
 # import the exported snapshot from the first project into another project
-descopecli project snapshot import P2xyz... --path ./descope_export
+descope project snapshot import P2xyz... --path ./descope_export
 ```
 
 ### Search audit records
 
 ```bash
 # searches for any audit records about the user we created above
-descopecli audit search 'andyr'
+descope audit search 'andyr' --json
 ```
-```
-* Found 1 record
-  - Record 0:
+```json
+{
+  "count": 1,
+  "ok": true,
+  "records": [
     {
       "action": "UserCreated",
       "loginIds": [
         "andyr@example.com"
-      ],
-      ...
+      ]
     }
+  ]
+}
 ```
 
 ## Support
