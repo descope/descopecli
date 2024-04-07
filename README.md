@@ -7,7 +7,7 @@ The `descope` command line tool provides a convenient way to perform common task
 ### Requirements
 
 -   The Descope project's `Project ID` is required by `descope` to know which project
-    to work with. You can find it in the [project page](https://app.descope.com/settings/project)
+    to work with. You can find it in the [Project section](https://app.descope.com/settings/project)
     in the Descope console.
 -   You'll also need a valid Descope management key for the above project. You can create
     a management key in the [Company section](https://app.descope.com/settings/company) in
