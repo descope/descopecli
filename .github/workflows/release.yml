@@ -11,7 +11,7 @@ env:
 jobs:
   publish:
     permissions:
-      contents: read
+      contents: write
       id-token: write
       packages: write
     name: Publish
