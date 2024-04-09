@@ -2,9 +2,6 @@ name: CI
 
 on: push
 
-env:
-  GO_VERSION: '1.21'
-
 jobs:
   build:
     name: Build and Setup
@@ -15,7 +12,7 @@ jobs:
       - name: Build
         uses: ./.github/actions/ci/build
         with:
-          go_version: ${{ env.GO_VERSION }}
+          go_version-file: go.mod
 
   lint:
     name: Run Linter
@@ -26,7 +23,7 @@ jobs:
       - name: Run Linter
         uses: ./.github/actions/ci/lint
         with:
-          go_version: ${{ env.GO_VERSION }}
+          go_version-file: go.mod
 
   leaks:
     name: Check Leaks
@@ -34,8 +31,9 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - name: Check Leaks
         uses: ./.github/actions/ci/leaks
         with:
           gitleaks_license: ${{ secrets.GITLEAKS_LICENSE }}
-

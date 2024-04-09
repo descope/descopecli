@@ -1,4 +1,3 @@
-
 # Descope CLI
 
 The `descope` command line tool provides a convenient way to perform common tasks on your Descope project.
@@ -7,12 +6,12 @@ The `descope` command line tool provides a convenient way to perform common task
 
 ### Requirements
 
-- The Descope project's `Project ID` is required by `descope` to know which project
-  to work with. You can find it in the [project page](https://app.descope.com/settings/project)
-  in the Descope console.
-- You'll also need a valid Descope management key for the above project. You can create
-  a management key in the [Company section](https://app.descope.com/settings/company) in
-  the Descope console.
+-   The Descope project's `Project ID` is required by `descope` to know which project
+    to work with. You can find it in the [Project section](https://app.descope.com/settings/project)
+    in the Descope console.
+-   You'll also need a valid Descope management key for the above project. You can create
+    a management key in the [Company section](https://app.descope.com/settings/company) in
+    the Descope console.
 
 ### Installing
 
@@ -33,7 +32,7 @@ Alternatively, you can build it directly from source with the `go` compiler.
     ```bash
     git clone https://github.com/descope/descopecli
     cd descopecli
-    ``` 
+    ```
 
 3.  Install `descope` with `make install`:
 
@@ -41,6 +40,20 @@ Alternatively, you can build it directly from source with the `go` compiler.
     # installs to $GOPATH/bin by default
     make install
     ```
+
+#### Using Debian/Ubuntu or Fedora/CentOS
+
+```bash
+# Debian/Ubuntu
+sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys e8365d8513142909
+echo "deb https://descope.github.io/packages stable main" | sudo tee /etc/apt/sources.list.d/descope.list
+sudo apt-get update
+sudo apt-get install descope
+
+# Fedora/CentOS
+sudo dnf config-manager --add-repo https://descope.github.io/packages/descope.repo
+sudo dnf install descope
+```
 
 ### Usage
 
@@ -54,6 +67,7 @@ export DESCOPE_MANAGEMENT_KEY=...
 export DESCOPE_PROJECT_ID=...
 descope help
 ```
+
 ```
 A command line utility for working with the Descope management APIs
 
@@ -82,6 +96,7 @@ Additional Commands:
 # creates a new tenant with a predefined tenantId
 descope tenant create 'AcmeCorp' --id 'acmecorp'
 ```
+
 ```
 * Created new tenant with id: acmecorp
 ```
@@ -92,18 +107,19 @@ descope tenant create 'AcmeCorp' --id 'acmecorp'
 # use the --json option to get structured JSON output from any command
 descope tenant load-all --json
 ```
+
 ```json
 {
-  "count": 1,
-  "ok": true,
-  "tenants": [
-    {
-      "id": "acmecorp",
-      "name": "AcmeCorp",
-      "selfProvisioningDomains": [],
-      "authType": "none"
-    }
-  ]
+    "count": 1,
+    "ok": true,
+    "tenants": [
+        {
+            "id": "acmecorp",
+            "name": "AcmeCorp",
+            "selfProvisioningDomains": [],
+            "authType": "none"
+        }
+    ]
 }
 ```
 
@@ -113,26 +129,25 @@ descope tenant load-all --json
 # creates a user and sends them an invitation if configured in the Descope console
 descope user create 'andyr@example.com' --name 'Andy Rhoads' -t 'acmecorp' --json
 ```
+
 ```json
 {
-  "ok": true,
-  "user": {
-    "name": "Andy Rhoads",
-    "email": "andyr@example.com",
-    "userId": "U2eY8ZRNUlC9IKqLGzmAww7qgK0T",
-    "loginIds": [
-      "andyr@example.com"
-    ],
-    "verifiedEmail": true,
-    "userTenants": [
-      {
-        "tenantId": "acmecorp",
-        "tenantName": "AcmeCorp"
-      }
-    ],
-    "status": "invited",
-    "createdTime": 1712070205
-  }
+    "ok": true,
+    "user": {
+        "name": "Andy Rhoads",
+        "email": "andyr@example.com",
+        "userId": "U2eY8ZRNUlC9IKqLGzmAww7qgK0T",
+        "loginIds": ["andyr@example.com"],
+        "verifiedEmail": true,
+        "userTenants": [
+            {
+                "tenantId": "acmecorp",
+                "tenantName": "AcmeCorp"
+            }
+        ],
+        "status": "invited",
+        "createdTime": 1712070205
+    }
 }
 ```
 
@@ -142,6 +157,7 @@ descope user create 'andyr@example.com' --name 'Andy Rhoads' -t 'acmecorp' --jso
 # returns a page of user results
 descope user load-all --limit 10 --page 0
 ```
+
 ```
 * Loaded 3 users
   - User 0: { "name": ... }
@@ -168,18 +184,17 @@ descope project snapshot import P2xyz... --path ./descope_export
 # searches for any audit records about the user we created above
 descope audit search 'andyr' --json
 ```
+
 ```json
 {
-  "count": 1,
-  "ok": true,
-  "records": [
-    {
-      "action": "UserCreated",
-      "loginIds": [
-        "andyr@example.com"
-      ]
-    }
-  ]
+    "count": 1,
+    "ok": true,
+    "records": [
+        {
+            "action": "UserCreated",
+            "loginIds": ["andyr@example.com"]
+        }
+    ]
 }
 ```
 

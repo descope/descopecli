@@ -4,7 +4,7 @@ description: Check Leaks
 
 inputs:
   gitleaks_license:
-    description: 'A gitleaks-action license'
+    description: "A gitleaks-action license"
     required: true
 
 runs:
@@ -15,5 +15,5 @@ runs:
       env:
         GITLEAKS_LICENSE: ${{ inputs.gitleaks_license }}
         GITLEAKS_CONFIG: .github/actions/ci/leaks/gitleaks.toml
-        GITLEAKS_ENABLE_SUMMARY: false
-        GITLEAKS_ENABLE_UPLOAD_ARTIFACT: false
+        GITLEAKS_ENABLE_SUMMARY: "false"
+        GITLEAKS_ENABLE_UPLOAD_ARTIFACT: "false"
