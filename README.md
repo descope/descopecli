@@ -2,6 +2,8 @@
 
 The `descope` command line tool provides a convenient way to perform common tasks on your Descope project.
 
+<br/>
+
 ## Installation
 
 ### All Platforms
@@ -52,6 +54,8 @@ You can build the `descope` command line tool directly with the `go` compiler:
     make install
     ```
 
+<br/>
+
 ## Getting Started
 
 ### Requirements
@@ -96,7 +100,11 @@ Additional Commands:
   help        Help about any command
 ```
 
+<br/>
+
 ## Examples
+
+### Tenants
 
 #### Create a tenant
 
@@ -130,6 +138,8 @@ descope tenant load-all --json
     ]
 }
 ```
+
+### Users
 
 #### Create a user in a tenant
 
@@ -173,7 +183,9 @@ descope user load-all --limit 10 --page 0
   - User 2: { "name": ... }
 ```
 
-### Manage project settings
+### Project
+
+#### Manage project settings
 
 ```bash
 # to prevent mistakes some project commands require the projectId as
@@ -186,7 +198,7 @@ descope project snapshot export 'P2abc...' --path ./descope_export
 descope project snapshot import 'P2xyz...' --path ./descope_export
 ```
 
-### Search audit records
+#### Search audit records
 
 ```bash
 # searches for any audit records about the user we created above
@@ -205,6 +217,8 @@ descope audit search 'andyr' --json
     ]
 }
 ```
+
+<br/>
 
 ## Support
 
