@@ -1,31 +1,64 @@
-# Descope CLI
 
-The `descope` command line tool provides a convenient way to perform common tasks on your Descope project.
+<div align="center">
+  <a href="https://github.com/descope/descopecli">
+    <img src=".github/images/descope-logo.png" alt="Descope Logo" width="160" height="160">
+  </a>
 
-## Getting Started
+  <h3 align="center">Descope CLI</h3>
 
-### Requirements
+  <p align="center">
+    A command line tool for managing your Descope project 
+  </p>
+</div>
 
--   The Descope project's `Project ID` is required by `descope` to know which project
-    to work with. You can find it in the [Project section](https://app.descope.com/settings/project)
-    in the Descope console.
--   You'll also need a valid Descope management key for the above project. You can create
-    a management key in the [Company section](https://app.descope.com/settings/company) in
-    the Descope console.
+<br />
 
-### Installing
+## About
+
+The `descope` command line tool provides a convenient way to perform common tasks on your Descope project by leveraging Descope's management APIs.
+
+* Create and modify project entities such as users, tenants and access keys.
+* Manage project settings and configurations using snapshots that can be exported, validated and imported into other projects.
+* Search and display audit logs for projects.
+* Supports JSON output for easy integration into scripts and CI/CD workflows.
+
+<br/>
+
+## Installation
+
+### All Platforms
 
 The `descope` tool is available as a downloadable binary from the [releases page](https://github.com/descope/descopecli/releases/latest).
 
-Alternatively, you can build it directly from source with the `go` compiler.
+### Debian/Ubuntu
 
-1.  Verify that you have Go 1.21 or newer installed:
+Install `descope` using APT:
+
+```bash
+sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys e8365d8513142909
+echo "deb https://descope.github.io/packages stable main" | sudo tee /etc/apt/sources.list.d/descope.list
+sudo apt-get update
+sudo apt-get install descope
+```
+
+### Fedora/CentOS
+
+You can install `descope` using DNF by adding the Descope repository:
+
+```bash
+sudo dnf config-manager --add-repo https://descope.github.io/packages/descope.repo
+sudo dnf install descope
+```
+
+### Build from Source
+
+You can build the `descope` command line tool directly with the `go` compiler:
+
+1.  Verify that you have Go 1.21 or newer installed, and if not, follow the instructions on the [Go website](https://go.dev/dl):
 
     ```bash
     go version
     ```
-
-    If `go` is not installed follow the instructions on the [Go website](https://go.dev/dl).
 
 2.  Clone or download the repository:
 
@@ -41,19 +74,18 @@ Alternatively, you can build it directly from source with the `go` compiler.
     make install
     ```
 
-#### Using Debian/Ubuntu or Fedora/CentOS
+<br/>
 
-```bash
-# Debian/Ubuntu
-sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys e8365d8513142909
-echo "deb https://descope.github.io/packages stable main" | sudo tee /etc/apt/sources.list.d/descope.list
-sudo apt-get update
-sudo apt-get install descope
+## Getting Started
 
-# Fedora/CentOS
-sudo dnf config-manager --add-repo https://descope.github.io/packages/descope.repo
-sudo dnf install descope
-```
+### Requirements
+
+-   The Descope project's `Project ID` is required by `descope` to know which project
+    to work with. You can find it in the [Project section](https://app.descope.com/settings/project)
+    in the Descope console.
+-   You'll also need a valid Descope management key for the above project. You can create
+    a management key in the [Company section](https://app.descope.com/settings/company) in
+    the Descope console.
 
 ### Usage
 
@@ -63,9 +95,9 @@ Descope project's unique id either in the `DESCOPE_PROJECT_ID` environment
 variable or as a command argument, depending on the command.
 
 ```bash
-export DESCOPE_MANAGEMENT_KEY=...
-export DESCOPE_PROJECT_ID=...
-descope help
+export DESCOPE_PROJECT_ID='P...'
+export DESCOPE_MANAGEMENT_KEY='K...'
+descope --help
 ```
 
 ```
@@ -88,7 +120,11 @@ Additional Commands:
   help        Help about any command
 ```
 
-### Examples
+<br/>
+
+## Examples
+
+### Tenants
 
 #### Create a tenant
 
@@ -122,6 +158,8 @@ descope tenant load-all --json
     ]
 }
 ```
+
+### Users
 
 #### Create a user in a tenant
 
@@ -165,20 +203,22 @@ descope user load-all --limit 10 --page 0
   - User 2: { "name": ... }
 ```
 
-### Manage project settings
+### Project
+
+#### Manage project settings
 
 ```bash
 # to prevent mistakes some project commands require the projectId as
 # an argument, rather than as an environment variable
 
 # export a snapshot of all the project's settings and configurations
-descope project snapshot export P2abc... --path ./descope_export
+descope project snapshot export 'P2abc...' --path ./descope_export
 
 # import the exported snapshot from the first project into another project
-descope project snapshot import P2xyz... --path ./descope_export
+descope project snapshot import 'P2xyz...' --path ./descope_export
 ```
 
-### Search audit records
+#### Search audit records
 
 ```bash
 # searches for any audit records about the user we created above
@@ -197,6 +237,8 @@ descope audit search 'andyr' --json
     ]
 }
 ```
+
+<br/>
 
 ## Support
 
