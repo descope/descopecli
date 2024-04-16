@@ -1,6 +1,26 @@
-# Descope CLI
 
-The `descope` command line tool provides a convenient way to perform common tasks on your Descope project.
+<div align="center">
+  <a href="https://github.com/descope/descopecli">
+    <img src=".github/images/descope-logo.png" alt="Descope Logo" width="160" height="160">
+  </a>
+
+  <h3 align="center">Descope CLI</h3>
+
+  <p align="center">
+    A command line tool for managing your Descope project 
+  </p>
+</div>
+
+<br />
+
+## About
+
+The `descope` command line tool provides a convenient way to perform common tasks on your Descope project by leveraging Descope's management APIs.
+
+* Create and modify project entities such as users, tenants and access keys.
+* Manage project settings and configurations using snapshots that can be exported, validated and imported into other projects.
+* Search and display audit logs for projects.
+* Supports JSON output for easy integration into scripts and CI/CD workflows.
 
 <br/>
 
