@@ -23,9 +23,23 @@ builds:
       - amd64
       - arm64
     goos:
-      - darwin
       - windows
       - linux
+  - binary: descope
+    id: macos
+    goos:
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+    hooks:
+      post:
+        - cmd: |
+            go install github.com/anchore/quill/cmd/quill@v0
+            quill sign-and-notarize "{{ .Path }}" -vv #--dry-run={{ .IsSnapshot }} --ad-hoc={{ .IsSnapshot }}
+          env:
+            - QUILL_LOG_FILE=/tmp/quill-{{ .Target }}.log
+
 dockers:
   - image_templates:
       - "ghcr.io/descope/cli:{{ .Tag }}-amd64"
