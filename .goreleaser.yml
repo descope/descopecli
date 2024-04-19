@@ -35,7 +35,7 @@ builds:
       - arm64
     hooks:
       post:
-        - cmd: quill sign-and-notarize "{{ .Path }}" -vv #--dry-run={{ .IsSnapshot }} --ad-hoc={{ .IsSnapshot }}
+        - cmd: quill sign-and-notarize "{{ .Path }}" -vv --dry-run={{ .IsSnapshot }} --ad-hoc={{ .IsSnapshot }}
           env:
             - QUILL_LOG_FILE=/tmp/quill-{{ .Target }}.log
 
