@@ -3,6 +3,7 @@ project_name: descope
 before:
   hooks:
     - go mod tidy
+    - go install github.com/anchore/quill/cmd/quill@v0
 
 env:
   - GO111MODULE=on
@@ -34,9 +35,7 @@ builds:
       - arm64
     hooks:
       post:
-        - cmd: |
-            go install github.com/anchore/quill/cmd/quill@v0
-            quill sign-and-notarize "{{ .Path }}" -vv #--dry-run={{ .IsSnapshot }} --ad-hoc={{ .IsSnapshot }}
+        - cmd: quill sign-and-notarize "{{ .Path }}" -vv #--dry-run={{ .IsSnapshot }} --ad-hoc={{ .IsSnapshot }}
           env:
             - QUILL_LOG_FILE=/tmp/quill-{{ .Target }}.log
 
