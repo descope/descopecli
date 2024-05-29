@@ -16,7 +16,7 @@ runs:
         go_version: ${{ inputs.go_version }}
 
     - name: Run Linter
-      uses: golangci/golangci-lint-action@v5
+      uses: golangci/golangci-lint-action@v6
       with:
         version: v1.55.2
         skip-pkg-cache: true
