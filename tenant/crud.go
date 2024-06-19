@@ -25,7 +25,7 @@ func Create(args []string) (err error) {
 }
 
 func Delete(args []string) error {
-	return shared.Descope.Management.Tenant().Delete(context.Background(), args[0])
+	return shared.Descope.Management.Tenant().Delete(context.Background(), args[0], false)
 }
 
 func Load(args []string) error {
