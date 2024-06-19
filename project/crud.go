@@ -43,3 +43,13 @@ func Delete(args []string) error {
 	shared.PrintProgress(fmt.Sprintf("Deleted project %s", args[0]))
 	return nil
 }
+
+func List(_ []string) error {
+	res, err := shared.Descope.Management.Project().ListProjects(context.Background())
+	if err != nil {
+		return err
+	}
+
+	shared.ExitWithResults(res, "projects", "Project", "Loaded", "project", "projects")
+	return nil
+}

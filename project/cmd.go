@@ -19,6 +19,10 @@ func AddCommands(parent *cobra.Command, group *cobra.Group) {
 	project := shared.MakeGroupCommand(group, "project", "Commands for managing projects")
 	parent.AddCommand(project)
 
+	shared.AddCommand(project, List, "list", "Lists all projects in a company", func(cmd *cobra.Command) {
+		cmd.Args = cobra.NoArgs
+	})
+
 	shared.AddCommand(project, Clone, "clone <existingProjectId> <newProjectName> [-t tag]", "Clone an existing project along with all settings and configurations", func(cmd *cobra.Command) {
 		cmd.Args = cobra.ExactArgs(2)
 		cmd.Flags().StringVarP(&Flags.Path, "tag", "t", "", "an optional tag for the new project, only valid value is production")
