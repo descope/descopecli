@@ -86,7 +86,7 @@ runs:
         SECRETS_OUTPUT="$(mktemp)"
         FAILURES_OUTPUT="$(mktemp)"
         jq -r '.inputs.secrets' $GITHUB_EVENT_PATH > "$SECRETS_INPUT"
-        descopecli project snapshot validate "${{ inputs.project_id }}" --path "${{ inputs.files_path }}" --secrets-input "$SECRETS_INPUT" --secrets-output "$SECRETS_OUTPUT" --failures-output "$FAILURES_OUTPUT"
+        descope project snapshot validate "${{ inputs.project_id }}" --path "${{ inputs.files_path }}" --secrets-input "$SECRETS_INPUT" --secrets-output "$SECRETS_OUTPUT" --failures-output "$FAILURES_OUTPUT"
         result=$?
         rm "$SECRETS_INPUT"
         if [ "$result" = "2" ]; then
@@ -110,7 +110,7 @@ runs:
         set +e
         SECRETS_INPUT="$(mktemp)"
         jq -r '.inputs.secrets' $GITHUB_EVENT_PATH > "$SECRETS_INPUT"
-        descopecli project snapshot import "${{ inputs.project_id }}" --path "${{ inputs.files_path }}" --secrets-input "$SECRETS_INPUT"
+        descope project snapshot import "${{ inputs.project_id }}" --path "${{ inputs.files_path }}" --secrets-input "$SECRETS_INPUT"
         result=$?
         rm "$SECRETS_INPUT"
         exit $result
