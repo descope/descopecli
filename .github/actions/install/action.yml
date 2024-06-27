@@ -6,8 +6,8 @@ author: 'Descope'
 
 inputs:
   version:
-    description: 'The version of the descopecli tool to use'
-    default: 'latest'
+    description: 'The version of the descope CLI tool to use'
+    default: 'v0.8.6'
 
 runs:
   using: 'composite'
@@ -22,10 +22,14 @@ runs:
       id: cache-cli
       uses: actions/cache@v4
       with:
-        path: ~/go/bin
+        path: ~/go/bin/descopecli
         key: ${{ runner.os }}-descopecli-${{ inputs.version }}
 
     - name: Install Descopecli
       if: steps.cache-cli.outputs.cache-hit != 'true'
       shell: bash
       run: go install github.com/descope/descopecli@${{ inputs.version }}
+
+    - name: Copy Renamed
+      shell: bash
+      run: cp ~/go/bin/descopecli ~/go/bin/descope

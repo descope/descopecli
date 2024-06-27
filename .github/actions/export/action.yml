@@ -19,8 +19,8 @@ inputs:
     description: 'The path to the snapshot files (i.e., the directory containing the snapshot.json file)'
     default: '.'
   descopecli_version:
-    description: 'The version of the descopecli tool to use'
-    default: 'v0.8.2'
+    description: 'The version of the descope CLI tool to use'
+    default: 'v0.8.6'
   descope_base_url:
     description: 'The base URL used to communicate with Descope servers (for troubleshooting purposes)'
 
@@ -75,7 +75,7 @@ runs:
         echo "Exporting snapshot"
         rm -rf "${{ inputs.files_path }}"
         mkdir -p "${{ inputs.files_path }}"
-        descopecli project snapshot export "${{ inputs.project_id }}" --path "${{ inputs.files_path }}"
+        descope project snapshot export "${{ inputs.project_id }}" --path "${{ inputs.files_path }}"
 
     - name: Check For Changes
       id: check
