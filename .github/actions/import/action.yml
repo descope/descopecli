@@ -28,8 +28,8 @@ inputs:
     description: 'Whether to only perform the import step (for building workflows where import is a separate job)'
     type: boolean
   descopecli_version:
-    description: 'The version of the descopecli tool to use'
-    default: 'v0.8.2'
+    description: 'The version of the descope CLI tool to use'
+    default: 'v0.8.6'
   descope_base_url:
     description: 'The base URL used to communicate with Descope servers (for troubleshooting purposes)'
 

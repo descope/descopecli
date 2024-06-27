@@ -6,8 +6,8 @@ author: 'Descope'
 
 inputs:
   version:
-    description: 'The version of the descopecli tool to use'
-    default: 'latest'
+    description: 'The version of the descope CLI tool to use'
+    default: 'v0.8.6'
 
 runs:
   using: 'composite'
