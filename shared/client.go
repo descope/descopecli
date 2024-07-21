@@ -42,9 +42,6 @@ func createDescopeClient(args []string, project bool) (*client.DescopeClient, er
 	}
 
 	if project {
-		if config.ProjectID != "" && args[0] != config.ProjectID {
-			return nil, errors.New("the " + descope.EnvironmentVariableProjectID + " environment variable must not conflict with the command argument")
-		}
 		config.ProjectID = args[0]
 		if !strings.HasPrefix(config.ProjectID, "P") {
 			return nil, errors.New("the command argument must be a valid projectId")
