@@ -29,7 +29,7 @@ inputs:
     type: boolean
   descopecli_version:
     description: 'The version of the descope CLI tool to use'
-    default: 'v0.8.7'
+    default: 'v0.8.8'
   descope_base_url:
     description: 'The base URL used to communicate with Descope servers (for troubleshooting purposes)'
 
