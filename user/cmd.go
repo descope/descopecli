@@ -69,13 +69,13 @@ func AddCommands(parent *cobra.Command, group *cobra.Group) {
 		cmd.Flags().StringVarP(&Flags.TenantID, "tenant", "t", "", "update the roles for the user in a specific tenant")
 	})
 
-	shared.AddCommand(roles, AddRoles, "add  <loginId> [-t tid] <-r role,...>", "Add roles to a user", func(cmd *cobra.Command) {
+	shared.AddCommand(roles, AddRoles, "add <loginId> [-t tid] <-r role,...>", "Add roles to a user", func(cmd *cobra.Command) {
 		cmd.Args = cobra.ExactArgs(1)
 		cmd.Flags().StringSliceVarP(&Flags.Roles, "roles", "r", nil, "a comma separated list of role names to add")
 		cmd.Flags().StringVarP(&Flags.TenantID, "tenant", "t", "", "update the roles for the user in a specific tenant")
 	})
 
-	shared.AddCommand(roles, RemoveRoles, "remove  <loginId> [-t tid] <-r role,...>", "Remove roles from a user", func(cmd *cobra.Command) {
+	shared.AddCommand(roles, RemoveRoles, "remove <loginId> [-t tid] <-r role,...>", "Remove roles from a user", func(cmd *cobra.Command) {
 		cmd.Args = cobra.ExactArgs(1)
 		cmd.Flags().StringSliceVarP(&Flags.Roles, "roles", "r", nil, "a comma separated list of role names to remove")
 		cmd.Flags().StringVarP(&Flags.TenantID, "tenant", "t", "", "update the roles for the user in a specific tenant")
