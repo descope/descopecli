@@ -43,6 +43,6 @@ func MakeGroupCommand(parentGroup *cobra.Group, use string, help string) *cobra.
 
 func hideHelpFlag(cmd *cobra.Command) {
 	cmd.InitDefaultHelpFlag()
-	cmd.Flags().Lookup("help").Hidden = true
+	cmd.Flags().MarkHidden("help")
 	cmd.Flags().SortFlags = false
 }
