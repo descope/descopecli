@@ -7,7 +7,7 @@ author: 'Descope'
 inputs:
   version:
     description: 'The version of the descope CLI tool to use'
-    default: 'v0.8.7'
+    default: 'v0.8.8'
 
 runs:
   using: 'composite'

@@ -6,14 +6,16 @@ import (
 )
 
 var Flags struct {
-	LoginID string
-	UserID  string
-	Email   string
-	Phone   string
-	Name    string
-	Tenants []string
-	Limit   int
-	Page    int
+	LoginID  string
+	UserID   string
+	TenantID string
+	Email    string
+	Phone    string
+	Name     string
+	Tenants  []string
+	Roles    []string
+	Limit    int
+	Page     int
 }
 
 func AddCommands(parent *cobra.Command, group *cobra.Group) {
@@ -56,5 +58,26 @@ func AddCommands(parent *cobra.Command, group *cobra.Group) {
 
 	shared.AddCommand(pwd, ExpirePassword, "expire <loginId>", "Expire a user's password", func(cmd *cobra.Command) {
 		cmd.Args = cobra.ExactArgs(1)
+	})
+
+	roles := shared.MakeGroupCommand(nil, "roles", "Commands for managing user roles")
+	user.AddCommand(roles)
+
+	shared.AddCommand(roles, SetRoles, "set <loginId> [-t tid] [-r role,...]", "Set the roles for a user", func(cmd *cobra.Command) {
+		cmd.Args = cobra.ExactArgs(1)
+		cmd.Flags().StringSliceVarP(&Flags.Roles, "roles", "r", nil, "a comma separated list of role names, or remove all roles if not set")
+		cmd.Flags().StringVarP(&Flags.TenantID, "tenant", "t", "", "update the roles for the user in a specific tenant")
+	})
+
+	shared.AddCommand(roles, AddRoles, "add <loginId> [-t tid] <-r role,...>", "Add roles to a user", func(cmd *cobra.Command) {
+		cmd.Args = cobra.ExactArgs(1)
+		cmd.Flags().StringSliceVarP(&Flags.Roles, "roles", "r", nil, "a comma separated list of role names to add")
+		cmd.Flags().StringVarP(&Flags.TenantID, "tenant", "t", "", "update the roles for the user in a specific tenant")
+	})
+
+	shared.AddCommand(roles, RemoveRoles, "remove <loginId> [-t tid] <-r role,...>", "Remove roles from a user", func(cmd *cobra.Command) {
+		cmd.Args = cobra.ExactArgs(1)
+		cmd.Flags().StringSliceVarP(&Flags.Roles, "roles", "r", nil, "a comma separated list of role names to remove")
+		cmd.Flags().StringVarP(&Flags.TenantID, "tenant", "t", "", "update the roles for the user in a specific tenant")
 	})
 }
