@@ -8,7 +8,8 @@ import (
 var Flags struct {
 	Path           string
 	Debug          bool
-	Tag            string
+	Environment    string
+	Tags           []string
 	SecretsInput   string
 	SecretsOutput  string
 	FailuresOutput string
@@ -23,10 +24,16 @@ func AddCommands(parent *cobra.Command, group *cobra.Group) {
 		cmd.Args = cobra.NoArgs
 	})
 
-	shared.AddCommand(project, Clone, "clone <existingProjectId> <newProjectName> [-t tag]", "Clone an existing project along with all settings and configurations", func(cmd *cobra.Command) {
+	shared.AddCommand(project, Clone, "clone <existingProjectId> <newProjectName> [-e environment] [--tags tag,...]", "Clone an existing project along with all settings and configurations", func(cmd *cobra.Command) {
 		cmd.Args = cobra.ExactArgs(2)
-		cmd.Flags().StringVarP(&Flags.Path, "tag", "t", "", "an optional tag for the new project, only valid value is production")
+		cmd.Flags().StringVarP(&Flags.Environment, "environment", "e", "", "an optional environment for the new project, only valid value is production")
+		cmd.Flags().StringSliceVar(&Flags.Tags, "tags", nil, "a comma separated list of tags for the new project")
 		cmd.PreRunE = shared.ProjectPreRun
+
+		// deprecated
+		cmd.Flags().StringVarP(&Flags.Environment, "tag", "t", "", "an optional tag for the new project, only valid value is production")
+		cmd.Flags().MarkDeprecated("tag", "use --environment instead")
+		cmd.Flags().MarkShorthandDeprecated("t", "use -e instead")
 	})
 
 	shared.AddCommand(project, Delete, "delete <projectId> [-f]", "Delete an existing project", func(cmd *cobra.Command) {
