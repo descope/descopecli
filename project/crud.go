@@ -12,6 +12,8 @@ import (
 	"github.com/descope/go-sdk/descope"
 )
 
+const errProjectNotFound = "E011008"
+
 func Clone(args []string) error {
 	env := descope.ProjectEnvironment(Flags.Environment)
 	if env != descope.ProjectEnvironmentNone && env != descope.ProjectEnvironmentProduction {
@@ -28,15 +30,39 @@ func Clone(args []string) error {
 }
 
 func Delete(args []string) error {
+	// only works with company management key, ignore errors other than project not found
+	projects, err := shared.Descope.Management.Project().ListProjects(context.Background())
+	if err, ok := err.(*descope.Error); ok && err.Code == errProjectNotFound {
+		return fmt.Errorf("cannot find project with id %s", args[0])
+	}
+
+	alias := args[0]
+	name := ""
+	for _, p := range projects {
+		if p.ID == args[0] {
+			alias = p.Name
+			name = p.Name
+		}
+	}
+
 	if !Flags.Force {
 		if shared.Flags.Json {
 			return errors.New("the --force flag is required when using --json to delete a project")
 		}
-		shared.PrintProgress(fmt.Sprintf("Are you sure you want to delete project %s (this cannot be undone): [y/N] ", args[0]))
+
+		fmt.Printf("* Delete the project \"%s\"?\n", alias)
+		fmt.Printf("* All project information will be deleted, including users, flows and analytics.\n")
+		fmt.Printf("* This cannot be undone!\n")
+		if name != "" {
+			fmt.Printf("* Enter the project name to confirm: ")
+		} else {
+			fmt.Printf("* Enter the project id to confirm: ")
+		}
+
 		reader := bufio.NewReader(os.Stdin)
 		response, _ := reader.ReadString('\n')
-		response = strings.ToLower(strings.TrimSpace(response))
-		if response != "y" && response != "yes" {
+		if response = strings.TrimSpace(response); response != alias {
+			fmt.Printf("* Cancelled\n")
 			return nil
 		}
 	}
@@ -45,7 +71,7 @@ func Delete(args []string) error {
 		return err
 	}
 
-	shared.PrintProgress(fmt.Sprintf("Deleted project %s", args[0]))
+	shared.PrintProgress(fmt.Sprintf(`Deleted project "%s"`, alias))
 	return nil
 }
 
