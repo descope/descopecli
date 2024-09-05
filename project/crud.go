@@ -13,7 +13,12 @@ import (
 )
 
 func Clone(args []string) error {
-	res, err := shared.Descope.Management.Project().Clone(context.Background(), args[1], descope.ProjectTag(Flags.Tag))
+	env := descope.ProjectEnvironment(Flags.Environment)
+	if env != descope.ProjectEnvironmentNone && env != descope.ProjectEnvironmentProduction {
+		return errors.New(`the only valid value for the optional --environment flag is "production"`)
+	}
+
+	res, err := shared.Descope.Management.Project().Clone(context.Background(), args[1], env, Flags.Tags)
 	if err != nil {
 		return err
 	}
