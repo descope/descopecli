@@ -45,6 +45,14 @@ func AddCommands(parent *cobra.Command, group *cobra.Group) {
 		cmd.Flags().IntVarP(&Flags.Page, "page", "p", 0, "the number of page for pagination (default 0)")
 	})
 
+	shared.AddCommand(user, Activate, "activate <loginId>", "Activate a user", func(cmd *cobra.Command) {
+		cmd.Args = cobra.ExactArgs(1)
+	})
+
+	shared.AddCommand(user, Deactivate, "deactivate <loginId>", "Deactivate a user", func(cmd *cobra.Command) {
+		cmd.Args = cobra.ExactArgs(1)
+	})
+
 	pwd := shared.MakeGroupCommand(nil, "password", "Commands for managing user passwords")
 	user.AddCommand(pwd)
 
