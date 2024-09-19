@@ -30,6 +30,5 @@ func AddCommands(parent *cobra.Command, group *cobra.Group) {
 	})
 
 	shared.AddCommand(tenant, LoadAll, "load-all", "Load all tenants", func(cmd *cobra.Command) {
-		cmd.Args = cobra.ExactArgs(0)
 	})
 }
