@@ -6,29 +6,35 @@ import (
 )
 
 var Flags struct {
-	LoginID  string
-	UserID   string
-	TenantID string
-	Email    string
-	Phone    string
-	Name     string
-	Tenants  []string
-	Roles    []string
-	Limit    int
-	Page     int
+	LoginID     string
+	UserID      string
+	TenantID    string
+	Email       string
+	Phone       string
+	Name        string
+	Tenants     []string
+	Roles       []string
+	Limit       int
+	Page        int
+	RedirectURL string
+}
+
+// reused in create commands for regular users and test users
+var createUse = "create <loginId> [-e email] [-p phone] [-n name] [-t tid,...]"
+var createSetup = func(cmd *cobra.Command) {
+	cmd.Args = cobra.ExactArgs(1)
+	cmd.Flags().StringVarP(&Flags.Email, "email", "e", "", "the user's email address")
+	cmd.Flags().StringVarP(&Flags.Phone, "phone", "p", "", "the user's phone number")
+	cmd.Flags().StringVarP(&Flags.Name, "name", "n", "", "the user's display name")
+	cmd.Flags().StringSliceVarP(&Flags.Tenants, "tenants", "t", nil, "a comma separated list of tenant ids for the user")
 }
 
 func AddCommands(parent *cobra.Command, group *cobra.Group) {
 	user := shared.MakeGroupCommand(group, "user", "Commands for creating and managing users")
 	parent.AddCommand(user)
 
-	shared.AddCommand(user, Create, "create <loginId> [-e email] [-p phone] [-n name] [-t tid,...]", "Create a new user", func(cmd *cobra.Command) {
-		cmd.Args = cobra.ExactArgs(1)
-		cmd.Flags().StringVarP(&Flags.Email, "email", "e", "", "the user's email address")
-		cmd.Flags().StringVarP(&Flags.Phone, "phone", "p", "", "the user's phone number")
-		cmd.Flags().StringVarP(&Flags.Name, "name", "n", "", "the user's display name")
-		cmd.Flags().StringSliceVarP(&Flags.Tenants, "tenants", "t", nil, "a comma separated list of tenant ids for the user")
-	})
+	// reused in create user and create test user
+	shared.AddCommand(user, Create, createUse, "Create a new user", createSetup)
 
 	shared.AddCommand(user, Delete, "delete {-l loginId | -u userId}", "Delete a user", func(cmd *cobra.Command) {
 		cmd.Flags().StringVarP(&Flags.LoginID, "login-id", "l", "", "the user's loginId")
@@ -87,5 +93,13 @@ func AddCommands(parent *cobra.Command, group *cobra.Group) {
 		cmd.Args = cobra.ExactArgs(1)
 		cmd.Flags().StringSliceVarP(&Flags.Roles, "roles", "r", nil, "a comma separated list of role names to remove")
 		cmd.Flags().StringVarP(&Flags.TenantID, "tenant", "t", "", "update the roles for the user in a specific tenant")
+	})
+
+	test := shared.MakeGroupCommand(nil, "test", "Commands for creating and managing test users")
+	user.AddCommand(test)
+
+	shared.AddCommand(test, CreateTestUser, createUse, "Create a new test user", createSetup)
+
+	shared.AddCommand(test, DeleteAllTestUsers, "delete-all", "Delete all existing test users in the project", func(cmd *cobra.Command) {
 	})
 }

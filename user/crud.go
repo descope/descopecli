@@ -9,6 +9,10 @@ import (
 )
 
 func Create(args []string) error {
+	return createUser(args, false)
+}
+
+func createUser(args []string, test bool) error {
 	tenants := []*descope.AssociatedTenant{}
 	for _, tenantID := range Flags.Tenants {
 		tenants = append(tenants, &descope.AssociatedTenant{TenantID: tenantID})
@@ -20,7 +24,13 @@ func Create(args []string) error {
 	u.Name = Flags.Name
 	u.Tenants = tenants
 
-	user, err := shared.Descope.Management.User().Create(context.Background(), args[0], u)
+	var err error
+	var user *descope.UserResponse
+	if test {
+		user, err = shared.Descope.Management.User().CreateTestUser(context.Background(), args[0], u)
+	} else {
+		user, err = shared.Descope.Management.User().Create(context.Background(), args[0], u)
+	}
 	if err != nil {
 		return err
 	}
