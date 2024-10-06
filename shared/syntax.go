@@ -12,7 +12,7 @@ func AddCommand(parent *cobra.Command, action func([]string) error, use string, 
 		Short:                 help,
 		DisableFlagsInUseLine: true,
 		PreRunE:               DefaultPreRun,
-		Run: func(cmd *cobra.Command, args []string) {
+		Run: func(_ *cobra.Command, args []string) {
 			err := action(args)
 			ExitWithStatus(err)
 			if err != nil {

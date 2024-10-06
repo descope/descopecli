@@ -100,7 +100,7 @@ func AddCommands(parent *cobra.Command, group *cobra.Group) {
 
 	shared.AddCommand(test, CreateTestUser, createUse, "Create a new test user", createSetup)
 
-	shared.AddCommand(test, DeleteAllTestUsers, "delete-all", "Delete all existing test users in the project", func(cmd *cobra.Command) {
+	shared.AddCommand(test, DeleteAllTestUsers, "delete-all", "Delete all existing test users in the project", func(_ *cobra.Command) {
 	})
 
 	generate := shared.MakeGroupCommand(nil, "generate", "Commands for generating logins for test users")

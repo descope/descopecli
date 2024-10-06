@@ -32,7 +32,7 @@ func AddCommands(parent *cobra.Command, group *cobra.Group) {
 		cmd.Args = cobra.ExactArgs(1)
 	})
 
-	shared.AddCommand(accessKey, LoadAll, "load-all", "Load all access keys", func(cmd *cobra.Command) {
+	shared.AddCommand(accessKey, LoadAll, "load-all", "Load all access keys", func(_ *cobra.Command) {
 	})
 
 	shared.AddCommand(accessKey, Activate, "activate <id>", "Activate an access key", func(cmd *cobra.Command) {
