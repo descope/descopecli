@@ -25,7 +25,7 @@ lint: ensure-linter ensure-gitleaks ## check for linter and gitleaks failures
 
 ensure-linter: ensure-go
 	if ! command -v golangci-lint &> /dev/null; then \
-		go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.55.2 ;\
+		go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.61.0 ;\
 	fi
 
 ensure-gitleaks:

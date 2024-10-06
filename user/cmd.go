@@ -100,6 +100,23 @@ func AddCommands(parent *cobra.Command, group *cobra.Group) {
 
 	shared.AddCommand(test, CreateTestUser, createUse, "Create a new test user", createSetup)
 
-	shared.AddCommand(test, DeleteAllTestUsers, "delete-all", "Delete all existing test users in the project", func(cmd *cobra.Command) {
+	shared.AddCommand(test, DeleteAllTestUsers, "delete-all", "Delete all existing test users in the project", func(_ *cobra.Command) {
+	})
+
+	generate := shared.MakeGroupCommand(nil, "generate", "Commands for generating logins for test users")
+	test.AddCommand(generate)
+
+	shared.AddCommand(generate, GenerarteTestUserOTP, "otp <method> <loginId>", "Generate an OTP for a test user using email, sms, or voice", func(cmd *cobra.Command) {
+		cmd.Args = cobra.ExactArgs(2)
+	})
+
+	shared.AddCommand(generate, GenerarteTestUserMagicLink, "magic-link <method> <loginId> [-u url]", "Generate a magic link for a test user using email or sms", func(cmd *cobra.Command) {
+		cmd.Args = cobra.ExactArgs(2)
+		cmd.Flags().StringVarP(&Flags.RedirectURL, "redirect-url", "u", "", "override the redirect URL configured for enchanted link in the project configuration")
+	})
+
+	shared.AddCommand(generate, GenerarteTestUserEnchantedLink, "enchanted-link <loginId> [-u url]", "Generate an enchanted link and a pendingRef which is used to poll for a valid session", func(cmd *cobra.Command) {
+		cmd.Args = cobra.ExactArgs(1)
+		cmd.Flags().StringVarP(&Flags.RedirectURL, "redirect-url", "u", "", "override the redirect URL configured for enchanted link in the project configuration")
 	})
 }
