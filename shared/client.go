@@ -51,7 +51,7 @@ func createDescopeClient(args []string, project bool) (*client.DescopeClient, er
 			return nil, errors.New("the " + descope.EnvironmentVariableProjectID + " environment variable must be set")
 		}
 		if !strings.HasPrefix(config.ProjectID, "P") {
-			return nil, errors.New("the " + descope.EnvironmentVariableManagementKey + " environment variable must be a valid projectId")
+			return nil, errors.New("the " + descope.EnvironmentVariableProjectID + " environment variable must be a valid projectId")
 		}
 	}
 
