@@ -5,6 +5,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var Flags struct {
+	Skip bool
+}
+
 func AddCommands(parent *cobra.Command, group *cobra.Group) {
 	flow := shared.MakeGroupCommand(group, "flow", "Commands for managing flows")
 	parent.AddCommand(flow)
@@ -19,5 +23,10 @@ func AddCommands(parent *cobra.Command, group *cobra.Group) {
 
 	shared.AddCommand(flow, Import, "import <flowId> <sourcePath>", "Import a flow from a JSON file", func(cmd *cobra.Command) {
 		cmd.Args = cobra.ExactArgs(2)
+	})
+
+	shared.AddCommand(flow, Convert, "convert <sourcePath> [targetPath] [-f format]", "Convert a flow between formats", func(cmd *cobra.Command) {
+		cmd.Args = cobra.RangeArgs(1, 2)
+		cmd.Flags().BoolVarP(&Flags.Skip, "skip", "s", false, "skip unsupported file types")
 	})
 }
