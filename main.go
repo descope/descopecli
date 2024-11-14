@@ -5,8 +5,10 @@ import (
 
 	"github.com/descope/descopecli/accesskey"
 	"github.com/descope/descopecli/audit"
+	"github.com/descope/descopecli/flow"
 	"github.com/descope/descopecli/project"
 	"github.com/descope/descopecli/tenant"
+	"github.com/descope/descopecli/theme"
 	"github.com/descope/descopecli/user"
 	"github.com/spf13/cobra"
 )
@@ -33,6 +35,8 @@ func main() {
 
 	audit.AddCommands(cli, proj)
 	project.AddCommands(cli, proj)
+	flow.AddCommands(cli, proj)
+	theme.AddCommands(cli, proj)
 
 	if err := cli.Execute(); err != nil {
 		os.Exit(1)
