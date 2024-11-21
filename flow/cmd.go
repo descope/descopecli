@@ -25,8 +25,9 @@ func AddCommands(parent *cobra.Command, group *cobra.Group) {
 		cmd.Args = cobra.ExactArgs(2)
 	})
 
-	shared.AddCommand(flow, Convert, "convert <sourcePath> [targetPath] [-f format]", "Convert a flow between formats", func(cmd *cobra.Command) {
+	shared.AddCommand(flow, Convert, "convert <sourcePath> [targetPath] [-s]", "Convert a flow between formats", func(cmd *cobra.Command) {
 		cmd.Args = cobra.RangeArgs(1, 2)
 		cmd.Flags().BoolVarP(&Flags.Skip, "skip", "s", false, "skip unsupported file types")
+		cmd.PreRunE = shared.StandalonePreRun
 	})
 }

@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"slices"
+	"strings"
 
 	"github.com/descope/descopecli/shared"
 	"golang.org/x/exp/maps"
@@ -145,6 +146,10 @@ func convertFlowSnapshotToExported(sourcePath string) (map[string]any, error) {
 		}
 		flow.Screens = append(flow.Screens, &screen)
 	}
+
+	slices.SortFunc(flow.Screens, func(a, b *exportedScreen) int {
+		return strings.Compare(a.ScreenId, b.ScreenId)
+	})
 
 	return convertJSONObject(flow), nil
 }
