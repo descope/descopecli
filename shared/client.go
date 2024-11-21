@@ -24,6 +24,11 @@ func ProjectPreRun(cmd *cobra.Command, args []string) (err error) {
 	return err
 }
 
+func StandalonePreRun(cmd *cobra.Command, _ []string) error {
+	cmd.SilenceUsage = true
+	return nil
+}
+
 func createDescopeClient(args []string, project bool) (*client.DescopeClient, error) {
 	config := &client.Config{
 		// optional as an environment variable in some commands
