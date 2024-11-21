@@ -60,7 +60,7 @@ func Convert(args []string) error {
 		return writeFlowFile(sourcePath, targetPath, m)
 	}
 
-	if m["flowId"] != nil && m["metadata"] != nil {
+	if m["contents"] != nil && m["metadata"] != nil {
 		if len(args) < 2 {
 			return errors.New("target directory path is required when converting to snapshot format")
 		}
