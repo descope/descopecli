@@ -8,7 +8,7 @@ require (
 	golang.org/x/exp v0.0.0-20240205201215-2c58cdc269a3
 )
 
-require github.com/lestrrat-go/httprc v1.0.6 // indirect
+require github.com/lestrrat-go/httprc/v2 v2.0.0 // indirect
 
 require (
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.3.0 // indirect
