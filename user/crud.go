@@ -89,7 +89,7 @@ func UpdateEmail(_ []string) error {
 	if Flags.LoginID != "" {
 		user, err = shared.Descope.Management.User().UpdateEmail(context.Background(), Flags.LoginID, Flags.Email, Flags.Verified)
 	} else {
-		user, err = shared.Descope.Management.User().UpdateEmailByUserId(context.Background(), Flags.UserID, Flags.Email, Flags.Verified)
+		user, err = shared.Descope.Management.User().UpdateEmailByUserID(context.Background(), Flags.UserID, Flags.Email, Flags.Verified)
 	}
 	if err != nil {
 		return err
