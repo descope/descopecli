@@ -10,6 +10,7 @@ var Flags struct {
 	UserID      string
 	TenantID    string
 	Email       string
+	Verified    bool
 	Phone       string
 	Name        string
 	Tenants     []string
@@ -93,6 +94,18 @@ func AddCommands(parent *cobra.Command, group *cobra.Group) {
 		cmd.Args = cobra.ExactArgs(1)
 		cmd.Flags().StringSliceVarP(&Flags.Roles, "roles", "r", nil, "a comma separated list of role names to remove")
 		cmd.Flags().StringVarP(&Flags.TenantID, "tenant", "t", "", "update the roles for the user in a specific tenant")
+	})
+
+	update := shared.MakeGroupCommand(nil, "update", "Commands for updating user details")
+	user.AddCommand(update)
+
+	shared.AddCommand(update, UpdateEmail, "email {-l loginId | -u userId} --email <email_address> [--verified]", "Sets the email for a user", func(cmd *cobra.Command) {
+		cmd.Flags().StringVarP(&Flags.LoginID, "login-id", "l", "", "the user's loginId")
+		cmd.Flags().StringVarP(&Flags.UserID, "user-id", "u", "", "the user's userId")
+		cmd.Flags().StringVarP(&Flags.Email, "email", "e", "", "the email to set for the user")
+		cmd.Flags().BoolVarP(&Flags.Verified, "verified", "v", false, "is the email address verified, deafult is false")
+		cmd.MarkFlagRequired("email")
+		cmd.MarkFlagsOneRequired("login-id", "user-id")
 	})
 
 	test := shared.MakeGroupCommand(nil, "test", "Commands for creating and managing test users")

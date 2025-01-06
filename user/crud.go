@@ -78,3 +78,23 @@ func LoadAll(_ []string) error {
 	shared.ExitWithResults(res, "users", "User", "Loaded", "user", "users")
 	return nil
 }
+
+func UpdateEmail(_ []string) error {
+	if (Flags.LoginID == "" && Flags.UserID == "") || (Flags.LoginID != "" && Flags.UserID != "") {
+		return errors.New("this command requires 1 flag to identify the user")
+	}
+
+	var user *descope.UserResponse
+	var err error
+	if Flags.LoginID != "" {
+		user, err = shared.Descope.Management.User().UpdateEmail(context.Background(), Flags.LoginID, Flags.Email, Flags.Verified)
+	} else {
+		user, err = shared.Descope.Management.User().UpdateEmailByUserId(context.Background(), Flags.UserID, Flags.Email, Flags.Verified)
+	}
+	if err != nil {
+		return err
+	}
+
+	shared.ExitWithResult(user, "user", "Updated user email")
+	return nil
+}
