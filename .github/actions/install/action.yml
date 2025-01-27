@@ -20,7 +20,7 @@ runs:
 
     - name: Cache Descopecli
       id: cache-cli
-      uses: actions/cache@v4
+      uses: actions/cache@1bd1e32a3bdc45362d1e726936510720a7c30a57 # v4
       with:
         path: ~/go/bin/descopecli
         key: ${{ runner.os }}-descopecli-${{ inputs.version }}
