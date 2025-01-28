@@ -91,7 +91,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y aptly ca-certificates createrepo-c rsync
       - name: Import GPG key
-        uses: crazy-max/ghaction-import-gpg@cb9bde2e2525e640591a934b1fd28eef1dcaf5e5 # v6
+        uses: crazy-max/ghaction-import-gpg@cb9bde2e2525e640591a934b1fd28eef1dcaf5e5 # v6.2.0
         id: gpg
         with:
           gpg_private_key: ${{ secrets.MAVEN_GPG_KEY }}
