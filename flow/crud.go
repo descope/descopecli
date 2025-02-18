@@ -12,7 +12,7 @@ func List(_ []string) error {
 		return err
 	}
 
-	shared.ExitWithResults(res.Flows, "flows", "Flow", "Loaded", "flow", "flows")
+	shared.ExitWithSlice(res.Flows, "flows", "Flow", "Loaded", "flow", "flows")
 	return nil
 }
 
