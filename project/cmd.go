@@ -14,6 +14,7 @@ var Flags struct {
 	SecretsOutput  string
 	FailuresOutput string
 	Force          bool
+	NoAssets       bool
 }
 
 func AddCommands(parent *cobra.Command, group *cobra.Group) {
@@ -48,6 +49,7 @@ func AddCommands(parent *cobra.Command, group *cobra.Group) {
 	shared.AddCommand(snapshot, Export, "export <projectId> [-p path]", "Export a snapshot of all the settings and configurations of a project", func(cmd *cobra.Command) {
 		cmd.Args = cobra.ExactArgs(1)
 		cmd.Flags().StringVarP(&Flags.Path, "path", "p", "", "the path to write the snapshot into")
+		cmd.Flags().BoolVar(&Flags.NoAssets, "no-assets", false, "don't extract assets from snapshot files")
 		cmd.PreRunE = shared.ProjectPreRun
 	})
 
