@@ -12,6 +12,7 @@ import (
 	"strings"
 
 	"github.com/descope/descopecli/shared"
+	"github.com/descope/go-sdk/descope"
 	"golang.org/x/exp/maps"
 )
 
@@ -52,7 +53,13 @@ type exporter struct {
 
 func (ex *exporter) Export() error {
 	shared.PrintProgress("Exporting snapshot...")
-	res, err := shared.Descope.Management.Project().ExportSnapshot(context.Background())
+
+	req := &descope.ExportSnapshotRequest{}
+	if Flags.NoAssets {
+		req.Format = "plain"
+	}
+
+	res, err := shared.Descope.Management.Project().ExportSnapshot(context.Background(), req)
 	if err != nil {
 		return err
 	}

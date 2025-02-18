@@ -3,7 +3,7 @@ module github.com/descope/descopecli
 go 1.21
 
 require (
-	github.com/descope/go-sdk v1.6.9
+	github.com/descope/go-sdk v1.6.10-0.20250216115054-4057b44d9fd3
 	github.com/spf13/cobra v1.8.1
 	golang.org/x/exp v0.0.0-20240205201215-2c58cdc269a3
 )
@@ -12,7 +12,8 @@ require github.com/lestrrat-go/httprc v1.0.6 // indirect
 
 require (
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.3.0 // indirect
-	github.com/goccy/go-json v0.10.3 // indirect
+	github.com/goccy/go-json v0.10.4 // indirect
+	github.com/google/uuid v1.6.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/lestrrat-go/blackmagic v1.0.2 // indirect
 	github.com/lestrrat-go/httpcc v1.0.1 // indirect
