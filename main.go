@@ -7,6 +7,7 @@ import (
 	"github.com/descope/descopecli/audit"
 	"github.com/descope/descopecli/flow"
 	"github.com/descope/descopecli/project"
+	"github.com/descope/descopecli/snapshot"
 	"github.com/descope/descopecli/tenant"
 	"github.com/descope/descopecli/theme"
 	"github.com/descope/descopecli/user"
@@ -35,6 +36,7 @@ func main() {
 
 	audit.AddCommands(cli, proj)
 	project.AddCommands(cli, proj)
+	snapshot.AddCommands(cli, proj)
 	flow.AddCommands(cli, proj)
 	theme.AddCommands(cli, proj)
 
@@ -54,4 +56,4 @@ const examples = `  # Load an existing user by their loginId
 
   # Export all project settings and configurations
   export DESCOPE_MANAGEMENT_KEY=...
-  descope project snapshot export P2Z1234567890123456789012345`
+  descope snapshot export P2Z1234567890123456789012345`

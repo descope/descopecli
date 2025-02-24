@@ -114,6 +114,7 @@ Entity Commands:
 Project Commands:
   audit       Commands for working with audit logs
   project     Commands for managing projects
+  snapshot    Commands for working with snapshots
 
 Additional Commands:
   completion  Generate the autocompletion script for the specified shell
@@ -212,10 +213,10 @@ descope user load-all --limit 10 --page 0
 # an argument, rather than as an environment variable
 
 # export a snapshot of all the project's settings and configurations
-descope project snapshot export 'P2abc...' --path ./descope_export
+descope snapshot export 'P2abc...' --path ./descope_export
 
 # import the exported snapshot from the first project into another project
-descope project snapshot import 'P2xyz...' --path ./descope_export
+descope snapshot import 'P2xyz...' --path ./descope_export
 ```
 
 #### Search audit records

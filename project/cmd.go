@@ -2,19 +2,14 @@ package project
 
 import (
 	"github.com/descope/descopecli/shared"
+	"github.com/descope/descopecli/snapshot"
 	"github.com/spf13/cobra"
 )
 
 var Flags struct {
-	Path           string
-	Debug          bool
-	Environment    string
-	Tags           []string
-	SecretsInput   string
-	SecretsOutput  string
-	FailuresOutput string
-	Force          bool
-	NoAssets       bool
+	Environment string
+	Tags        []string
+	Force       bool
 }
 
 func AddCommands(parent *cobra.Command, group *cobra.Group) {
@@ -43,29 +38,8 @@ func AddCommands(parent *cobra.Command, group *cobra.Group) {
 		cmd.PreRunE = shared.ProjectPreRun
 	})
 
-	snapshot := shared.MakeGroupCommand(nil, "snapshot", "Commands for working with project snapshots")
-	project.AddCommand(snapshot)
-
-	shared.AddCommand(snapshot, Export, "export <projectId> [-p path]", "Export a snapshot of all the settings and configurations of a project", func(cmd *cobra.Command) {
-		cmd.Args = cobra.ExactArgs(1)
-		cmd.Flags().StringVarP(&Flags.Path, "path", "p", "", "the path to write the snapshot into")
-		cmd.Flags().BoolVar(&Flags.NoAssets, "no-assets", false, "don't extract assets from snapshot files")
-		cmd.PreRunE = shared.ProjectPreRun
-	})
-
-	shared.AddCommand(snapshot, Import, "import <projectId> [-p path]", "Import a snapshot into a project", func(cmd *cobra.Command) {
-		cmd.Args = cobra.ExactArgs(1)
-		cmd.Flags().StringVarP(&Flags.Path, "path", "p", "", "the path to read the snapshot from")
-		cmd.Flags().StringVar(&Flags.SecretsInput, "secrets-input", "", "the path to a JSON file with required secrets")
-		cmd.PreRunE = shared.ProjectPreRun
-	})
-
-	shared.AddCommand(snapshot, Validate, "validate <projectId> [-p path]", "Validate a snapshot before importing into a project", func(cmd *cobra.Command) {
-		cmd.Args = cobra.ExactArgs(1)
-		cmd.Flags().StringVarP(&Flags.Path, "path", "p", "", "the path to read the snapshot from")
-		cmd.Flags().StringVar(&Flags.SecretsInput, "secrets-input", "", "the path to a JSON file with required secrets")
-		cmd.Flags().StringVar(&Flags.SecretsOutput, "secrets-output", "", "the path to a JSON file to write missing secrets in case validation fails")
-		cmd.Flags().StringVar(&Flags.FailuresOutput, "failures-output", "", "the path to write a list of failures in case validation fails")
-		cmd.PreRunE = shared.ProjectPreRun
-	})
+	snap := shared.MakeGroupCommand(nil, "snapshot", "Commands for working with project snapshots")
+	// next version: snap.Deprecated = `Use "descope snapshot" instead of "descope project snapshot".`
+	project.AddCommand(snap)
+	snapshot.AddSnapshotCommands(snap)
 }
