@@ -35,8 +35,12 @@ func main() {
 
 	audit.AddCommands(cli, proj)
 	project.AddCommands(cli, proj)
-	flow.AddCommands(cli, proj)
-	theme.AddCommands(cli, proj)
+
+	flw := &cobra.Group{ID: "flow", Title: "Flow Commands:"}
+	cli.AddGroup(flw)
+
+	flow.AddCommands(cli, flw)
+	theme.AddCommands(cli, flw)
 
 	if err := cli.Execute(); err != nil {
 		os.Exit(1)
