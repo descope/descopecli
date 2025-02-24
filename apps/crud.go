@@ -1,4 +1,4 @@
-package thirdpartyapps
+package apps
 
 import (
 	"context"
