@@ -75,6 +75,6 @@ func LoadAll(_ []string) error {
 		return err
 	}
 
-	shared.ExitWithResults(res, "users", "User", "Loaded", "user", "users")
+	shared.ExitWithSlice(res, "users", "User", "Loaded", "user", "users")
 	return nil
 }

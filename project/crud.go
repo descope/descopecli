@@ -81,6 +81,6 @@ func List(_ []string) error {
 		return err
 	}
 
-	shared.ExitWithResults(res, "projects", "Project", "Loaded", "project", "projects")
+	shared.ExitWithSlice(res, "projects", "Project", "Loaded", "project", "projects")
 	return nil
 }

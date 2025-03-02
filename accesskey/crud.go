@@ -48,6 +48,6 @@ func LoadAll(_ []string) error {
 		return err
 	}
 
-	shared.ExitWithResults(res, "accessKeys", "Access key", "Loaded", "access key", "access keys")
+	shared.ExitWithSlice(res, "accessKeys", "Access key", "Loaded", "access key", "access keys")
 	return nil
 }
