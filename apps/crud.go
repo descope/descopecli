@@ -10,7 +10,7 @@ import (
 )
 
 func Create(args []string) error {
-	req, err := createReq("", args[0], args[1])
+	req, err := createReq("", args[0])
 	if err != nil {
 		return err
 	}
@@ -29,12 +29,12 @@ func Create(args []string) error {
 	m["app"] = app
 	m["secret"] = secret
 
-	shared.ExitWithMap(m, "Created new third party app")
+	shared.ExitWithMap(m, "Created new inbound app")
 	return nil
 }
 
 func Update(args []string) error {
-	req, err := createReq(args[0], args[1], args[2])
+	req, err := createReq(args[0], args[1])
 	if err != nil {
 		return err
 	}
@@ -48,7 +48,7 @@ func Update(args []string) error {
 		return err
 	}
 
-	shared.ExitWithResult(app, "app", "Updated third party app")
+	shared.ExitWithResult(app, "app", "Updated inbound app")
 	return nil
 }
 
@@ -62,7 +62,7 @@ func Load(args []string) error {
 		return err
 	}
 
-	shared.ExitWithResult(app, "app", "Loaded third party app")
+	shared.ExitWithResult(app, "app", "Loaded inbound app")
 	return nil
 }
 
@@ -72,7 +72,7 @@ func LoadAll(_ []string) error {
 		return err
 	}
 
-	shared.ExitWithSlice(apps, "apps", "Third Party App", "Loaded", "third party app", "third party apps")
+	shared.ExitWithSlice(apps, "apps", "App", "Loaded", "inbound app", "inbound apps")
 	return nil
 }
 
@@ -82,7 +82,7 @@ func LoadSecret(args []string) error {
 		return err
 	}
 
-	shared.ExitWithResult(secret, "secret", "Loaded secret for third party app")
+	shared.ExitWithResult(secret, "secret", "Loaded secret for inbound app")
 	return nil
 }
 
@@ -92,21 +92,25 @@ func RotateSecret(args []string) error {
 		return err
 	}
 
-	shared.ExitWithResult(secret, "secret", "Rotated secret for third party app")
+	shared.ExitWithResult(secret, "secret", "Rotated secret for inbound app")
 	return nil
 }
 
-func createReq(id, name, url string) (req *descope.ThirdPartyApplicationRequest, err error) {
+func createReq(id, name string) (req *descope.ThirdPartyApplicationRequest, err error) {
 	req = &descope.ThirdPartyApplicationRequest{
 		ID:                   id,
 		Name:                 name,
 		Description:          Flags.Description,
-		LoginPageURL:         url,
+		LoginPageURL:         Flags.FlowHostingURL,
 		ApprovedCallbackUrls: Flags.CallbackURLs,
 	}
 
+	if Flags.FlowHostingURL == "" {
+		return nil, errors.New("inbound apps require a flow hosting url")
+	}
+
 	if len(Flags.PermissionScopes) == 0 {
-		return nil, errors.New("third party apps require at least one permission scope")
+		return nil, errors.New("inbound apps require at least one permission scope")
 	}
 
 	req.PermissionsScopes, err = parseScopes(Flags.PermissionScopes, "permission", "roles")
