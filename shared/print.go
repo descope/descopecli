@@ -37,7 +37,18 @@ func ExitWithResult(result any, key string, message string) {
 	os.Exit(0)
 }
 
-func ExitWithResults[T any](results []T, key, noun, verb, singular, plural string) {
+func ExitWithMap(result map[string]any, message string) {
+	if Flags.Json {
+		result["ok"] = true
+		PrintIndented(result)
+	} else {
+		b, _ := json.Marshal(result)
+		fmt.Printf("* %s: %s\n", message, string(b))
+	}
+	os.Exit(0)
+}
+
+func ExitWithSlice[T any](results []T, key, noun, verb, singular, plural string) {
 	if Flags.Json {
 		PrintIndented(map[string]any{"ok": true, "count": len(results), key: results})
 	} else {

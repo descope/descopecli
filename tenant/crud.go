@@ -44,6 +44,6 @@ func LoadAll(_ []string) error {
 		return err
 	}
 
-	shared.ExitWithResults(res, "tenants", "Tenant", "Loaded", "tenant", "tenants")
+	shared.ExitWithSlice(res, "tenants", "Tenant", "Loaded", "tenant", "tenants")
 	return nil
 }

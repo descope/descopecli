@@ -4,6 +4,7 @@ import (
 	"os"
 
 	"github.com/descope/descopecli/accesskey"
+	"github.com/descope/descopecli/apps"
 	"github.com/descope/descopecli/audit"
 	"github.com/descope/descopecli/flow"
 	"github.com/descope/descopecli/project"
@@ -29,6 +30,7 @@ func main() {
 	accesskey.AddCommands(cli, entity)
 	user.AddCommands(cli, entity)
 	tenant.AddCommands(cli, entity)
+	apps.AddCommands(cli, entity)
 
 	proj := &cobra.Group{ID: "proj", Title: "Project Commands:"}
 	cli.AddGroup(proj)

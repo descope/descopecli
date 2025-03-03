@@ -108,6 +108,7 @@ Usage:
 
 Entity Commands:
   access-key  Commands for creating and managing access keys
+  apps        Commands for creating and managing applications and integrations
   tenant      Commands for creating and managing tenants
   user        Commands for creating and managing users
 
