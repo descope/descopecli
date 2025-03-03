@@ -3,7 +3,7 @@ module github.com/descope/descopecli
 go 1.21
 
 require (
-	github.com/descope/go-sdk v1.6.10-0.20250216115054-4057b44d9fd3
+	github.com/descope/go-sdk v1.6.10-0.20250227153352-6ea504aaf822
 	github.com/spf13/cobra v1.8.1
 	golang.org/x/exp v0.0.0-20240205201215-2c58cdc269a3
 )
