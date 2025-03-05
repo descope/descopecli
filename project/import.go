@@ -106,7 +106,7 @@ func (im *importer) Validate(req *descope.ValidateSnapshotRequest) error {
 		}
 	}
 
-	if Flags.SecretsOutput != "" && (len(res.MissingSecrets.Connectors) > 0 || len(res.MissingSecrets.OAuthProviders) > 0) {
+	if Flags.SecretsOutput != "" && (len(res.MissingSecrets.Connectors) > 0 || len(res.MissingSecrets.OAuthProviders) > 0 || len(res.MissingSecrets.OutboundApps) > 0) {
 		if err := im.writeSecrets(Flags.SecretsOutput, res.MissingSecrets); err != nil {
 			return err
 		}
@@ -184,8 +184,9 @@ func (im *importer) readFile(fullpath string) error {
 }
 
 const (
-	connectorPrefix = "connector-"
-	oauthPrefix     = "oauthprovider-"
+	connectorPrefix   = "connector-"
+	oauthPrefix       = "oauthprovider-"
+	outboundAppPrefix = "outboundapp-"
 )
 
 type secretEntry struct {
@@ -217,12 +218,17 @@ func (im *importer) readSecrets(path string) (*descope.SnapshotSecrets, error) {
 			for typ, value := range entry.Secrets {
 				secrets.OAuthProviders = append(secrets.OAuthProviders, &descope.SnapshotSecret{ID: id, Name: entry.Name, Type: typ, Value: value})
 			}
+		} else if strings.HasPrefix(k, outboundAppPrefix) {
+			id := strings.TrimPrefix(k, outboundAppPrefix)
+			for typ, value := range entry.Secrets {
+				secrets.OutboundApps = append(secrets.OutboundApps, &descope.SnapshotSecret{ID: id, Name: entry.Name, Type: typ, Value: value})
+			}
 		} else {
 			return nil, fmt.Errorf("unexpected secret type: %s", k)
 		}
 	}
 
-	found := len(secrets.Connectors) + len(secrets.OAuthProviders)
+	found := len(secrets.Connectors) + len(secrets.OAuthProviders) + len(secrets.OutboundApps)
 	if found == 0 {
 		shared.PrintProgress("No secrets found in input")
 	} else if found == 1 {
@@ -259,6 +265,13 @@ func (im *importer) writeSecrets(path string, secrets *descope.SnapshotSecrets) 
 	}
 	for _, v := range secrets.OAuthProviders {
 		key := oauthPrefix + v.ID
+		if _, ok := file[key]; !ok {
+			file[key] = &secretEntry{Name: v.Name, Secrets: map[string]string{}}
+		}
+		file[key].Secrets[v.Type] = ""
+	}
+	for _, v := range secrets.OutboundApps {
+		key := outboundAppPrefix + v.ID
 		if _, ok := file[key]; !ok {
 			file[key] = &secretEntry{Name: v.Name, Secrets: map[string]string{}}
 		}
