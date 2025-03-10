@@ -4,7 +4,7 @@ go 1.21
 
 require (
 	github.com/descope/go-sdk v1.6.10
-	github.com/spf13/cobra v1.9.0
+	github.com/spf13/cobra v1.9.1
 	golang.org/x/exp v0.0.0-20240205201215-2c58cdc269a3
 )
 
