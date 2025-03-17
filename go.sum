@@ -4,8 +4,8 @@ github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/decred/dcrd/dcrec/secp256k1/v4 v4.3.0 h1:rpfIENRNNilwHwZeG5+P150SMrnNEcHYvcCuK6dPZSg=
 github.com/decred/dcrd/dcrec/secp256k1/v4 v4.3.0/go.mod h1:v57UDF4pDQJcEfFUCRop3lJL149eHGSe9Jvczhzjo/0=
-github.com/descope/go-sdk v1.6.11-0.20250316220328-74bdbc6abae6 h1:V6G53/NMXM/oMAqjM05/B2Ng+q0cESoP4vq7ajlbKXQ=
-github.com/descope/go-sdk v1.6.11-0.20250316220328-74bdbc6abae6/go.mod h1:dZ7/W/qJqamEyLnX7J78OSNrvpMv5AGbBne1P3Wjk5s=
+github.com/descope/go-sdk v1.6.11-0.20250317054624-d5ec647d4930 h1:PAaGEo3T01SheOMFpYZiMuvAGYq6lgAueZnuJfsSTdU=
+github.com/descope/go-sdk v1.6.11-0.20250317054624-d5ec647d4930/go.mod h1:d1gTaz6iMN4+vtCZoBVRlwU9asZYInb/mcpGg3mX758=
 github.com/goccy/go-json v0.10.4 h1:JSwxQzIqKfmFX1swYPpUThQZp/Ka4wzJdK0LWVytLPM=
 github.com/goccy/go-json v0.10.4/go.mod h1:oq7eo15ShAhp70Anwd5lgX2pLfOS3QCiwU/PULtXL6M=
 github.com/google/uuid v1.6.0 h1:NIvaJDMOsjHA8n1jAhLSgzrAzy1Hgr+hNrb57e+94F0=
