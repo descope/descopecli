@@ -33,7 +33,7 @@ func Export(args []string) error {
 	}
 
 	if mkdir {
-		if err := os.Mkdir(root, 0755); err != nil && !os.IsExist(err) {
+		if err := os.Mkdir(root, 0750); err != nil && !os.IsExist(err) {
 			return errors.New("cannot create export path: " + root)
 		}
 	}
@@ -41,7 +41,10 @@ func Export(args []string) error {
 	ex := exporter{root: root}
 	err := ex.Export()
 	if mkdir && err != nil {
-		os.Remove(root)
+		err := os.Remove(root)
+		if err != nil {
+			return errors.New("failed to remove export path: " + root)
+		}
 	}
 
 	return err
@@ -122,7 +125,7 @@ func (ex *exporter) writeBytes(path string, bytes []byte) error {
 	if err != nil {
 		return err
 	}
-	if err = os.WriteFile(fullpath, bytes, 0644); err != nil {
+	if err = os.WriteFile(fullpath, bytes, 0600); err != nil {
 		return fmt.Errorf("failed to write asset file %s: %w", path, err)
 	}
 	return nil
@@ -134,7 +137,7 @@ func (ex *exporter) ensurePath(path string) (string, error) {
 	if dir != "" {
 		for _, d := range strings.Split(filepath.Clean(dir), string(filepath.Separator)) {
 			fullpath = filepath.Join(fullpath, d)
-			if err := os.Mkdir(fullpath, 0755); err != nil && !os.IsExist(err) {
+			if err := os.Mkdir(fullpath, 0750); err != nil && !os.IsExist(err) {
 				return "", fmt.Errorf("failed to create export subdirectory %s: %w", fullpath, err)
 			}
 		}
@@ -146,5 +149,5 @@ func (ex *exporter) ensurePath(path string) (string, error) {
 
 func WriteDebugFile(root, path string, object map[string]any) {
 	ex := exporter{root: root}
-	ex.writeObject(path, object)
+	_ = ex.writeObject(path, object)
 }

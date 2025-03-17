@@ -2,24 +2,13 @@ name: Setup Repo
 
 description: Setup Repo
 
-inputs:
-  go_version:
-    description: 'Version of Go to use for this build'
-    required: true
-
 runs:
   using: composite
   steps:
     - name: Setup Go
       uses: actions/setup-go@f111f3307d8850f501ac008e886eec1fd1932a34 # v5.3.0
+      env:
+        TAR_OPTIONS: --skip-old-files
       with:
-        go-version: ${{ inputs.go_version }}
-        cache: false
-
-    - name: Enable Cache
-      uses: actions/cache@0c907a75c2c80ebcb7f088228285e798b750cf8f # v4.2.1
-      with:
-        path: |
-          ~/go/pkg/mod
-          ~/.cache/go-build
-        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+        cache: true
+        go-version-file: go.mod

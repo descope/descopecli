@@ -45,7 +45,7 @@ linters:
     - goimports
     - godox
     - depguard
-  disable-all: true
+    - gosec
 
 issues:
   # Independently from option `exclude` we use default exclude patterns,

@@ -1,48 +1,46 @@
 name: Import Snapshot
 
-description: 'Imports a snapshot of all settings and configurations into a Descope project.'
+description: "Imports a snapshot of all settings and configurations into a Descope project."
 
-author: 'Descope'
+author: "Descope"
 
 branding:
-  icon: 'database'
-  color: 'green'
+  icon: "database"
+  color: "green"
 
 inputs:
   project_id:
-    description: 'The id of the Descope project to import into'
+    description: "The id of the Descope project to import into"
     required: true
   management_key:
-    description: 'The management key for the Descope project'
+    description: "The management key for the Descope project"
     required: true
   secrets:
-    description: 'An optional JSON value with additional secrets to inject into the import data'
-    default: '[]'
+    description: "An optional JSON value with additional secrets to inject into the import data"
+    default: "[]"
   files_path:
-    description: 'The path to the snapshot files (i.e., the directory containing the snapshot.json file)'
-    default: '.'
+    description: "The path to the snapshot files (i.e., the directory containing the snapshot.json file)"
+    default: "."
   validate_only:
-    description: 'Whether to only perform the validate step (for building workflows where validate is a separate job)'
-    type: boolean
+    description: "Whether to only perform the validate step (for building workflows where validate is a separate job)"
   import_only:
-    description: 'Whether to only perform the import step (for building workflows where import is a separate job)'
-    type: boolean
+    description: "Whether to only perform the import step (for building workflows where import is a separate job)"
   descopecli_version:
-    description: 'The version of the descope CLI tool to use'
-    default: 'v0.8.13'
+    description: "The version of the descope CLI tool to use"
+    default: "latest"
   descope_base_url:
-    description: 'The base URL used to communicate with Descope servers (for troubleshooting purposes)'
+    description: "The base URL used to communicate with Descope servers (for troubleshooting purposes)"
 
 outputs:
   failure_file:
-    description: 'The path to a file with a list of failures, or empty if there were none'
+    description: "The path to a file with a list of failures, or empty if there were none"
     value: ${{ steps.validate.outputs.failure_file }}
   missing_secrets_file:
-    description: 'The path to a JSON array with any missing secrets, or empty if there were none'
+    description: "The path to a JSON array with any missing secrets, or empty if there were none"
     value: ${{ steps.validate.outputs.missing_secrets_file }}
 
 runs:
-  using: 'composite'
+  using: "composite"
   steps:
     - name: Install Descope CLI
       uses: descope/descopecli/.github/actions/install@main

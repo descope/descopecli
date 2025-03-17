@@ -70,7 +70,11 @@ func Load(_ []string) error {
 }
 
 func LoadAll(_ []string) error {
-	res, _, err := shared.Descope.Management.User().SearchAll(context.Background(), &descope.UserSearchOptions{Limit: int32(Flags.Limit), Page: int32(Flags.Page)})
+	res, _, err := shared.Descope.Management.User().SearchAll(context.Background(), &descope.UserSearchOptions{
+		Limit: int32(Flags.Limit), // nolint:gosec
+		Page:  int32(Flags.Page),  // nolint:gosec
+	},
+	)
 	if err != nil {
 		return err
 	}
