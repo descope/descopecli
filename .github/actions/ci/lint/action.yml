@@ -4,7 +4,7 @@ description: Run Linter
 
 inputs:
   go_version:
-    description: 'Version of Go to use for this build'
+    description: "Version of Go to use for this build"
     required: true
 
 runs:
@@ -18,7 +18,8 @@ runs:
     - name: Run Linter
       uses: golangci/golangci-lint-action@2226d7cb06a077cd73e56eedd38eecad18e5d837 # v6.5.0
       with:
-        version: v1.61.0
+        # renovate: datasource=github-releases depName=golangci/golangci-lint
+        version: v1.64.7
         skip-pkg-cache: true
         skip-build-cache: true
         args: --config=.github/actions/ci/lint/golangci.yml
