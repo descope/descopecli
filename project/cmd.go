@@ -33,8 +33,8 @@ func AddCommands(parent *cobra.Command, group *cobra.Group) {
 
 		// deprecated
 		cmd.Flags().StringVarP(&Flags.Environment, "tag", "t", "", "an optional tag for the new project, only valid value is production")
-		cmd.Flags().MarkDeprecated("tag", "use --environment instead")
-		cmd.Flags().MarkShorthandDeprecated("t", "use -e instead")
+		_ = cmd.Flags().MarkDeprecated("tag", "use --environment instead")
+		_ = cmd.Flags().MarkShorthandDeprecated("t", "use -e instead")
 	})
 
 	shared.AddCommand(project, Delete, "delete <projectId> [-f]", "Delete an existing project", func(cmd *cobra.Command) {

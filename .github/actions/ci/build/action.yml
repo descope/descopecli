@@ -2,18 +2,11 @@ name: Build and Setup
 
 description: Build and Setup
 
-inputs:
-  go_version:
-    description: 'Version of Go to use for this build'
-    required: true
-
 runs:
   using: composite
   steps:
     - name: Setup Repo
       uses: ./.github/actions/ci/setup
-      with:
-        go_version: ${{ inputs.go_version }}
 
     - name: Build Code
       shell: bash

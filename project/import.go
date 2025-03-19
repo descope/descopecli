@@ -155,7 +155,7 @@ func (im *importer) readFile(fullpath string) error {
 		return fmt.Errorf("failed to parse snapshot file path %s: %w", fullpath, err)
 	}
 
-	bytes, err := os.ReadFile(fullpath)
+	bytes, err := os.ReadFile(fullpath) // nolint:gosec
 	if err != nil {
 		return fmt.Errorf("failed to read snapshot file %s: %w", relpath, err)
 	}
@@ -198,7 +198,7 @@ func (im *importer) readSecrets(path string) (*descope.SnapshotSecrets, error) {
 	var file map[string]*secretEntry
 
 	shared.PrintProgress("Reading input secrets...")
-	bytes, err := os.ReadFile(path)
+	bytes, err := os.ReadFile(path) // nolint:gosec
 	if err != nil {
 		return nil, fmt.Errorf("failed to read secrets input file %s: %w", path, err)
 	}
@@ -247,7 +247,7 @@ func (im *importer) writeFailures(path string, failures []string) error {
 		b = append(b, f...)
 		b = append(b, '\n')
 	}
-	if err := os.WriteFile(path, b, 0644); err != nil {
+	if err := os.WriteFile(path, b, 0600); err != nil {
 		return fmt.Errorf("failed to write failures output file %s: %w", path, err)
 	}
 	return nil
@@ -280,7 +280,7 @@ func (im *importer) writeSecrets(path string, secrets *descope.SnapshotSecrets) 
 
 	b, _ := json.MarshalIndent(file, "", "  ")
 	b = append(b, '\n')
-	if err := os.WriteFile(path, b, 0644); err != nil {
+	if err := os.WriteFile(path, b, 0600); err != nil {
 		return fmt.Errorf("failed to write secrets output file %s: %w", path, err)
 	}
 

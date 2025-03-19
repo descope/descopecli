@@ -67,7 +67,7 @@ func Convert(args []string) error {
 
 		targetPath := filepath.Clean(args[1])
 		if _, err := os.Stat(targetPath); os.IsNotExist(err) {
-			if err := os.Mkdir(targetPath, 0755); err != nil {
+			if err := os.Mkdir(targetPath, 0750); err != nil {
 				return fmt.Errorf("failed to create target directory %s: %w", targetPath, err)
 			}
 		}

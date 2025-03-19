@@ -21,7 +21,10 @@ func Create(args []string) error {
 
 	b, _ := json.Marshal(res)
 	m := map[string]any{}
-	json.Unmarshal(b, &m)
+	err = json.Unmarshal(b, &m)
+	if err != nil {
+		return err
+	}
 	m["cleartext"] = cleartext
 
 	shared.ExitWithResult(m, "accessKey", "Created access key")

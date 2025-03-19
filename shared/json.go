@@ -7,7 +7,7 @@ import (
 )
 
 func ReadJSONFile[T any](sourcePath string) (obj T, err error) {
-	bytes, err := os.ReadFile(sourcePath)
+	bytes, err := os.ReadFile(sourcePath) // nolint:gosec
 	if err != nil {
 		return obj, fmt.Errorf("failed to read source file %s: %w", sourcePath, err)
 	}
@@ -23,7 +23,7 @@ func WriteJSONFile(path string, object map[string]any) error {
 		return fmt.Errorf("failed to format JSON file %s: %w", path, err)
 	}
 	bytes = append(bytes, '\n')
-	if err = os.WriteFile(path, bytes, 0644); err != nil {
+	if err = os.WriteFile(path, bytes, 0600); err != nil {
 		return fmt.Errorf("failed to write JSON file %s: %w", path, err)
 	}
 	return nil
