@@ -5,7 +5,7 @@ go 1.23.0
 toolchain go1.24.1
 
 require (
-	github.com/descope/go-sdk v1.6.11-0.20250402074414-fc4278b01dec
+	github.com/descope/go-sdk v1.6.11-0.20250402103548-343f1484a764
 	github.com/spf13/cobra v1.9.1
 	golang.org/x/exp v0.0.0-20240205201215-2c58cdc269a3
 )
