@@ -2,7 +2,7 @@ module github.com/descope/descopecli
 
 go 1.23.0
 
-toolchain go1.24.3
+toolchain go1.24.4
 
 require (
 	github.com/descope/go-sdk v1.6.13
