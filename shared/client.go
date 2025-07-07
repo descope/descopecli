@@ -35,7 +35,7 @@ func createDescopeClient(args []string, project bool) (*client.DescopeClient, er
 		ProjectID: os.Getenv(descope.EnvironmentVariableProjectID),
 		// generate a management key in the Company section of the admin console: https://app.descope.com/settings/company
 		ManagementKey: os.Getenv(descope.EnvironmentVariableManagementKey),
-		// doesn't needs to be specified in regular user
+		// doesn't need to be specified in regular use
 		DescopeBaseURL: os.Getenv(descope.EnvironmentVariableBaseURL),
 	}
 
