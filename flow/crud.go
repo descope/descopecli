@@ -4,7 +4,18 @@ import (
 	"context"
 
 	"github.com/descope/descopecli/shared"
+	"github.com/descope/go-sdk/descope"
 )
+
+func RunManagementFlow(args []string) error {
+	output, err := shared.Descope.Management.Flow().RunManagementFlow(context.Background(), args[0], &descope.MgmtFlowOptions{})
+	if err != nil {
+		return err
+	}
+
+	shared.ExitWithMap(output, "Management flow execution result")
+	return nil
+}
 
 func List(_ []string) error {
 	res, err := shared.Descope.Management.Flow().ListFlows(context.Background())
