@@ -2,18 +2,51 @@ package flow
 
 import (
 	"context"
+	"encoding/json"
 
 	"github.com/descope/descopecli/shared"
 	"github.com/descope/go-sdk/descope"
 )
 
 func RunManagementFlow(args []string) error {
-	output, err := shared.Descope.Management.Flow().RunManagementFlow(context.Background(), args[0], &descope.MgmtFlowOptions{})
+	options := &descope.MgmtFlowOptions{}
+	if len(args) > 1 && args[1] != "" {
+		if err := json.Unmarshal([]byte(args[1]), &options); err != nil {
+			return err
+		}
+	}
+	output, err := shared.Descope.Management.Flow().RunManagementFlow(context.Background(), args[0], options)
 	if err != nil {
 		return err
 	}
 
 	shared.ExitWithMap(output, "Management flow execution result")
+	return nil
+}
+
+func RunManagementFlowAsync(args []string) error {
+	options := &descope.MgmtFlowOptions{}
+	if len(args) > 1 && args[1] != "" {
+		if err := json.Unmarshal([]byte(args[1]), &options); err != nil {
+			return err
+		}
+	}
+	executionRef, err := shared.Descope.Management.Flow().RunManagementFlowAsync(context.Background(), args[0], options)
+	if err != nil {
+		return err
+	}
+
+	shared.ExitWithResult(executionRef, "executionRef", "Management flow async execution ref")
+	return nil
+}
+
+func GetManagementFlowAsyncResult(args []string) error {
+	output, err := shared.Descope.Management.Flow().GetManagementFlowAsyncResult(context.Background(), args[0])
+	if err != nil {
+		return err
+	}
+
+	shared.ExitWithMap(output, "Management flow async execution result")
 	return nil
 }
 
