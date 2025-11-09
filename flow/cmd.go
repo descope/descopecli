@@ -13,6 +13,18 @@ func AddCommands(parent *cobra.Command, group *cobra.Group) {
 	flow := shared.MakeGroupCommand(group, "flow", "Commands for managing flows")
 	parent.AddCommand(flow)
 
+	shared.AddCommand(flow, RunManagementFlow, "run <flowId> [managementOptionsJSONString]", "Run a management flow", func(cmd *cobra.Command) {
+		cmd.Args = cobra.RangeArgs(1, 2)
+	})
+
+	shared.AddCommand(flow, RunManagementFlowAsync, "async-run <flowId> [managementOptionsJSONString]", "Run a management flow asynchronously", func(cmd *cobra.Command) {
+		cmd.Args = cobra.RangeArgs(1, 2)
+	})
+
+	shared.AddCommand(flow, GetManagementFlowAsyncResult, "async-result <executionId>", "Get the result of an async management flow execution", func(cmd *cobra.Command) {
+		cmd.Args = cobra.ExactArgs(1)
+	})
+
 	shared.AddCommand(flow, List, "list", "Lists all flows in a project", func(cmd *cobra.Command) {
 		cmd.Args = cobra.NoArgs
 	})
