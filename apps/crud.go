@@ -67,7 +67,7 @@ func Load(args []string) error {
 }
 
 func LoadAll(_ []string) error {
-	apps, err := shared.Descope.Management.ThirdPartyApplication().LoadAllApplications(context.Background())
+	apps, _, err := shared.Descope.Management.ThirdPartyApplication().LoadAllApplications(context.Background(), nil)
 	if err != nil {
 		return err
 	}
