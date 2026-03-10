@@ -208,18 +208,18 @@ func (im *importer) readSecrets(path string) (*descope.SnapshotSecrets, error) {
 
 	secrets := &descope.SnapshotSecrets{}
 	for k, entry := range file {
-		if strings.HasPrefix(k, connectorPrefix) {
-			id := strings.TrimPrefix(k, connectorPrefix)
+		if after, ok := strings.CutPrefix(k, connectorPrefix); ok {
+			id := after
 			for typ, value := range entry.Secrets {
 				secrets.Connectors = append(secrets.Connectors, &descope.SnapshotSecret{ID: id, Name: entry.Name, Type: typ, Value: value})
 			}
-		} else if strings.HasPrefix(k, oauthPrefix) {
-			id := strings.TrimPrefix(k, oauthPrefix)
+		} else if after, ok := strings.CutPrefix(k, oauthPrefix); ok {
+			id := after
 			for typ, value := range entry.Secrets {
 				secrets.OAuthProviders = append(secrets.OAuthProviders, &descope.SnapshotSecret{ID: id, Name: entry.Name, Type: typ, Value: value})
 			}
-		} else if strings.HasPrefix(k, outboundAppPrefix) {
-			id := strings.TrimPrefix(k, outboundAppPrefix)
+		} else if after, ok := strings.CutPrefix(k, outboundAppPrefix); ok {
+			id := after
 			for typ, value := range entry.Secrets {
 				secrets.OutboundApps = append(secrets.OutboundApps, &descope.SnapshotSecret{ID: id, Name: entry.Name, Type: typ, Value: value})
 			}
