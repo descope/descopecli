@@ -3,8 +3,8 @@ name: Build and Setup
 description: Build and Setup
 
 inputs:
-  go_version:
-    description: 'Version of Go to use for this build'
+  go_version_file:
+    description: 'Path to go.mod file for determining Go version'
     required: true
 
 runs:
@@ -13,7 +13,7 @@ runs:
     - name: Setup Repo
       uses: ./.github/actions/ci/setup
       with:
-        go_version: ${{ inputs.go_version }}
+        go_version_file: ${{ inputs.go_version_file }}
 
     - name: Build Code
       shell: bash
