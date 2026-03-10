@@ -12,7 +12,7 @@ jobs:
       - name: Build
         uses: ./.github/actions/ci/build
         with:
-          go_version-file: go.mod
+          go_version_file: go.mod
 
   lint:
     name: Run Linter
@@ -23,7 +23,7 @@ jobs:
       - name: Run Linter
         uses: ./.github/actions/ci/lint
         with:
-          go_version-file: go.mod
+          go_version_file: go.mod
 
   leaks:
     name: Check Leaks

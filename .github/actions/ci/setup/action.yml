@@ -3,8 +3,8 @@ name: Setup Repo
 description: Setup Repo
 
 inputs:
-  go_version:
-    description: 'Version of Go to use for this build'
+  go_version_file:
+    description: 'Path to go.mod file for determining Go version'
     required: true
 
 runs:
@@ -13,7 +13,7 @@ runs:
     - name: Setup Go
       uses: actions/setup-go@7a3fe6cf4cb3a834922a1244abfce67bcef6a0c5 # v6.2.0
       with:
-        go-version: ${{ inputs.go_version }}
+        go-version-file: ${{ inputs.go_version_file }}
         cache: false
 
     - name: Enable Cache

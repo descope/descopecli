@@ -14,13 +14,19 @@ var Descope *client.DescopeClient
 
 func DefaultPreRun(cmd *cobra.Command, args []string) (err error) {
 	cmd.SilenceUsage = true
-	Descope, err = createDescopeClient(args, false)
+	Descope, err = createDescopeClient(args, false, false)
 	return err
 }
 
 func ProjectPreRun(cmd *cobra.Command, args []string) (err error) {
 	cmd.SilenceUsage = true
-	Descope, err = createDescopeClient(args, true)
+	Descope, err = createDescopeClient(args, false, true)
+	return err
+}
+
+func CompanyPreRun(cmd *cobra.Command, args []string) (err error) {
+	cmd.SilenceUsage = true
+	Descope, err = createDescopeClient(args, true, false)
 	return err
 }
 
@@ -29,7 +35,7 @@ func StandalonePreRun(cmd *cobra.Command, _ []string) error {
 	return nil
 }
 
-func createDescopeClient(args []string, project bool) (*client.DescopeClient, error) {
+func createDescopeClient(args []string, company bool, project bool) (*client.DescopeClient, error) {
 	config := &client.Config{
 		// optional as an environment variable in some commands
 		ProjectID: os.Getenv(descope.EnvironmentVariableProjectID),
@@ -46,7 +52,10 @@ func createDescopeClient(args []string, project bool) (*client.DescopeClient, er
 		return nil, errors.New("the " + descope.EnvironmentVariableManagementKey + " environment variable must be a valid management key")
 	}
 
-	if project {
+	if company {
+		config.ProjectID = ""
+		config.AllowEmptyProjectID = true
+	} else if project {
 		config.ProjectID = args[0]
 		if !strings.HasPrefix(config.ProjectID, "P") {
 			return nil, errors.New("the command argument must be a valid projectId")

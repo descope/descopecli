@@ -3,6 +3,7 @@ package apps
 import (
 	"context"
 	"errors"
+	"slices"
 	"strings"
 
 	"github.com/descope/descopecli/shared"
@@ -67,7 +68,7 @@ func Load(args []string) error {
 }
 
 func LoadAll(_ []string) error {
-	apps, err := shared.Descope.Management.ThirdPartyApplication().LoadAllApplications(context.Background())
+	apps, _, err := shared.Descope.Management.ThirdPartyApplication().LoadAllApplications(context.Background(), nil)
 	if err != nil {
 		return err
 	}
@@ -141,10 +142,8 @@ func parseScopes(strs []string, kind string, values string) ([]*descope.ThirdPar
 		}
 		if v := strs[i+2]; v != "-" && v != "" {
 			scope.Values = strings.Split(v, "|")
-			for _, v := range scope.Values {
-				if v == "" {
-					return nil, errors.New("the " + scope.Name + " " + kind + " scope must not have empty " + values)
-				}
+			if slices.Contains(scope.Values, "") {
+				return nil, errors.New("the " + scope.Name + " " + kind + " scope must not have empty " + values)
 			}
 		}
 		scopes = append(scopes, scope)

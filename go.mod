@@ -1,13 +1,10 @@
 module github.com/descope/descopecli
 
-go 1.24.0
-
-toolchain go1.24.6
+go 1.26.1
 
 require (
 	github.com/descope/go-sdk v1.11.0
 	github.com/spf13/cobra v1.10.2
-	golang.org/x/exp v0.0.0-20240205201215-2c58cdc269a3
 )
 
 require github.com/lestrrat-go/httprc v1.0.6 // indirect
@@ -25,5 +22,6 @@ require (
 	github.com/segmentio/asm v1.2.0 // indirect
 	github.com/spf13/pflag v1.0.9 // indirect
 	golang.org/x/crypto v0.45.0 // indirect
+	golang.org/x/exp v0.0.0-20240205201215-2c58cdc269a3 // indirect
 	golang.org/x/sys v0.38.0 // indirect
 )

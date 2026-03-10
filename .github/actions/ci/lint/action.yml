@@ -3,8 +3,8 @@ name: Run Linter
 description: Run Linter
 
 inputs:
-  go_version:
-    description: "Version of Go to use for this build"
+  go_version_file:
+    description: 'Path to go.mod file for determining Go version'
     required: true
 
 runs:
@@ -13,13 +13,11 @@ runs:
     - name: Setup Repo
       uses: ./.github/actions/ci/setup
       with:
-        go_version: ${{ inputs.go_version }}
+        go_version_file: ${{ inputs.go_version_file }}
 
     - name: Run Linter
-      uses: golangci/golangci-lint-action@55c2c1448f86e01eaae002a5a3a9624417608d84 # v6.5.2
+      uses: golangci/golangci-lint-action@7119f3d5ddced62a10a044847a6c6bb0f7a5e76a # v7.0.0
       with:
         # renovate: datasource=github-releases depName=golangci/golangci-lint
-        version: v1.64.7
-        skip-pkg-cache: true
-        skip-build-cache: true
+        version: v2.11.3
         args: --config=.github/actions/ci/lint/golangci.yml
