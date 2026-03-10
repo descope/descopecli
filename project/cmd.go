@@ -23,6 +23,7 @@ func AddCommands(parent *cobra.Command, group *cobra.Group) {
 
 	shared.AddCommand(project, List, "list", "Lists all projects in a company", func(cmd *cobra.Command) {
 		cmd.Args = cobra.NoArgs
+		cmd.PreRunE = shared.CompanyPreRun
 	})
 
 	shared.AddCommand(project, Clone, "clone <existingProjectId> <newProjectName> [-e environment] [--tags tag,...]", "Clone an existing project along with all settings and configurations", func(cmd *cobra.Command) {
