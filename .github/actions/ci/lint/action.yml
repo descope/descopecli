@@ -16,7 +16,7 @@ runs:
         go_version_file: ${{ inputs.go_version_file }}
 
     - name: Run Linter
-      uses: golangci/golangci-lint-action@7119f3d5ddced62a10a044847a6c6bb0f7a5e76a # v7.0.0
+      uses: golangci/golangci-lint-action@9fae48acfc02a90574d7c304a1758ef9895495fa # v7.0.1
       with:
         # renovate: datasource=github-releases depName=golangci/golangci-lint
         version: v2.11.3
