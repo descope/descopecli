@@ -1,3 +1,5 @@
+version: 2
+
 project_name: descope
 
 before:
@@ -15,7 +17,8 @@ metadata:
 archives:
   - id: archive
     name_template: "{{ .Binary }}-{{ .Tag }}-{{ .Os }}-{{ .Arch }}"
-    format: binary
+    formats:
+      - binary
 
 builds:
   - id: descope
@@ -39,40 +42,18 @@ builds:
           env:
             - QUILL_LOG_FILE=/tmp/quill-{{ .Target }}.log
 
-dockers:
-  - image_templates:
-      - "ghcr.io/descope/cli:{{ .Tag }}-amd64"
-    use: buildx
-    build_flag_templates:
-      - "--pull"
-      - "--label=org.opencontainers.image.created={{.Date}}"
-      - "--label=org.opencontainers.image.name={{.ProjectName}}"
-      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
-      - "--label=org.opencontainers.image.version={{.Version}}"
-      - "--label=org.opencontainers.image.source={{.GitURL}}"
-      - "--platform=linux/amd64"
-  - image_templates:
-      - "ghcr.io/descope/cli:{{ .Tag }}-arm64"
-    use: buildx
-    build_flag_templates:
-      - "--pull"
-      - "--label=org.opencontainers.image.created={{.Date}}"
-      - "--label=org.opencontainers.image.name={{.ProjectName}}"
-      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
-      - "--label=org.opencontainers.image.version={{.Version}}"
-      - "--label=org.opencontainers.image.source={{.GitURL}}"
-      - "--platform=linux/arm64"
-    goarch: arm64
-
-docker_manifests:
-  - name_template: "ghcr.io/descope/cli:{{ .Tag }}"
-    image_templates:
-      - "ghcr.io/descope/cli:{{ .Tag }}-amd64"
-      - "ghcr.io/descope/cli:{{ .Tag }}-arm64"
-  - name_template: "ghcr.io/descope/cli:latest"
-    image_templates:
-      - "ghcr.io/descope/cli:{{ .Tag }}-amd64"
-      - "ghcr.io/descope/cli:{{ .Tag }}-arm64"
+dockers_v2:
+  - images:
+      - "ghcr.io/descope/cli"
+    tags:
+      - "{{ .Tag }}"
+      - latest
+    labels:
+      "org.opencontainers.image.created": "{{.Date}}"
+      "org.opencontainers.image.name": "{{.ProjectName}}"
+      "org.opencontainers.image.revision": "{{.FullCommit}}"
+      "org.opencontainers.image.version": "{{.Version}}"
+      "org.opencontainers.image.source": "{{.GitURL}}"
 
 signs:
   - cmd: cosign
@@ -85,13 +66,14 @@ signs:
         "${artifact}.sig",
         "--output-certificate",
         "${artifact}.pem",
+        "--bundle",
+        "${artifact}.bundle",
         "${artifact}",
       ]
     artifacts: binary
 
 docker_signs:
-  - artifacts: all
-    args: ["sign", "--upload=false", "${artifact}"]
+  - args: ["sign", "--bundle=/dev/null", "--upload=false", "${artifact}"]
 
 nfpms:
   - id: descope

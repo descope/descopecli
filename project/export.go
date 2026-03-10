@@ -6,14 +6,14 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"maps"
 	"os"
 	"path/filepath"
-	"sort"
+	"slices"
 	"strings"
 
 	"github.com/descope/descopecli/shared"
 	"github.com/descope/go-sdk/descope"
-	"golang.org/x/exp/maps"
 )
 
 func Export(args []string) error {
@@ -70,8 +70,7 @@ func (ex *exporter) Export() error {
 
 	shared.PrintProgress("Writing snapshot files:")
 
-	paths := maps.Keys(res.Files)
-	sort.Strings(paths)
+	paths := slices.Sorted(maps.Keys(res.Files))
 
 	for _, path := range paths {
 		shared.PrintItem(path)
@@ -132,7 +131,7 @@ func (ex *exporter) ensurePath(path string) (string, error) {
 	dir, file := filepath.Split(path)
 	fullpath := ex.root
 	if dir != "" {
-		for _, d := range strings.Split(filepath.Clean(dir), string(filepath.Separator)) {
+		for d := range strings.SplitSeq(filepath.Clean(dir), string(filepath.Separator)) {
 			fullpath = filepath.Join(fullpath, d)
 			if err := os.Mkdir(fullpath, 0755); err != nil && !os.IsExist(err) {
 				return "", fmt.Errorf("failed to create export subdirectory %s: %w", fullpath, err)

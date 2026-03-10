@@ -4,13 +4,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"maps"
 	"os"
 	"path/filepath"
 	"slices"
 	"strings"
 
 	"github.com/descope/descopecli/shared"
-	"golang.org/x/exp/maps"
 )
 
 func Convert(args []string) error {
@@ -189,8 +189,7 @@ func convertFlowExportedToSnapshot(sourcePath string) (map[string]map[string]any
 	}
 
 	// we add a list of screens to the metadata so we know which files to look for during import
-	screenIDs := maps.Keys(screens)
-	slices.Sort(screenIDs)
+	screenIDs := slices.Sorted(maps.Keys(screens))
 	metadata["screens"] = screenIDs
 
 	m := map[string]map[string]any{
