@@ -1,3 +1,4 @@
 FROM scratch
-COPY descope /descope
+ARG TARGETPLATFORM
+COPY ${TARGETPLATFORM}/descope /descope
 ENTRYPOINT ["/descope"]
