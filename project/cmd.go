@@ -59,7 +59,7 @@ func AddCommands(parent *cobra.Command, group *cobra.Group) {
 		cmd.Args = cobra.ExactArgs(1)
 		cmd.Flags().StringVarP(&Flags.Path, "path", "p", "", "the path to read the snapshot from")
 		cmd.Flags().StringVar(&Flags.SecretsInput, "secrets-input", "", "the path to a JSON file with required secrets")
-		cmd.Flags().StringSliceVar(&Flags.Excludes, "exclude", nil, "resource types to exclude from the import (can be specified multiple times or as a comma-separated list, e.g. --exclude lists --exclude adminportal or --exclude lists,adminportal)")
+		cmd.Flags().StringSliceVar(&Flags.Excludes, "exclude", nil, "a resource type to exclude from the import (e.g. --exclude lists)")
 		cmd.PreRunE = shared.ProjectPreRun
 	})
 
