@@ -67,7 +67,16 @@ func (im *importer) Run(validate bool) (err error) {
 		return im.Validate(req)
 	}
 
-	req := &descope.ImportSnapshotRequest{Files: im.files, InputSecrets: secrets}
+	var excludes []descope.SnapshotExclude
+	for _, e := range Flags.Excludes {
+		v := strings.TrimSpace(e)
+		if v == "" {
+			continue
+		}
+		shared.PrintProgress("Excluding " + v + " from import...")
+		excludes = append(excludes, descope.SnapshotExclude(v))
+	}
+	req := &descope.ImportSnapshotRequest{Files: im.files, InputSecrets: secrets, Excludes: excludes}
 	return im.Import(req)
 }
 
