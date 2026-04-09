@@ -33,7 +33,7 @@ runs:
   using: 'composite'
   steps:
     - name: Install Descope CLI
-      uses: descope/descopecli/.github/actions/install@ae063537743d6e8206e3c52bad31e532f6365795 # main
+      uses: descope/descopecli/.github/actions/install@27a08387b67c6cbd2523e89e1d5f9a8eb8b5a139 # main
       with:
         version: ${{ inputs.descopecli_version }}
 
