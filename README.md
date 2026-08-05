@@ -100,22 +100,6 @@ export DESCOPE_MANAGEMENT_KEY='K...'
 descope --help
 ```
 
-`DESCOPE_MANAGEMENT_KEY` also accepts a workload identity token instead of a static
-management key, so a CI job can authenticate with the OIDC token it requests for itself
-rather than a stored secret. In a GitHub Actions workflow with `id-token: write`
-permission that looks like this:
-
-```yaml
-- name: Run descope
-  run: descope --help
-  env:
-    DESCOPE_PROJECT_ID: P...
-    DESCOPE_MANAGEMENT_KEY: ${{ steps.token.outputs.token }}
-```
-
-The token's issuer must be registered as a trusted issuer for your company, under
-Company -> Workload Identity in the Descope console.
-
 ```
 A command line utility for working with the Descope management APIs
 
@@ -135,6 +119,42 @@ Project Commands:
 Additional Commands:
   completion  Generate the autocompletion script for the specified shell
   help        Help about any command
+```
+
+#### Using a workload identity token
+
+`DESCOPE_MANAGEMENT_KEY` also accepts a workload identity token instead of a static
+management key, so a CI job can authenticate with the short-lived OIDC token it requests
+for itself and you don't have to store a management key as a secret.
+
+The issuer must first be registered as a trusted issuer for your company, under
+Company -> Workload Identity in the Descope console. That configuration decides which
+subjects and audiences are accepted, so the token has to be requested with an audience
+the trusted issuer allows.
+
+In GitHub Actions the job needs `id-token: write` permission and a step that mints the
+token, since the permission alone doesn't produce one:
+
+```yaml
+permissions:
+  id-token: write
+
+steps:
+  - name: Request an OIDC token
+    id: token
+    uses: actions/github-script@v7
+    with:
+      script: |
+        // the audience must match one configured on the trusted issuer
+        const token = await core.getIDToken('descope')
+        core.setSecret(token)
+        core.setOutput('token', token)
+
+  - name: Run descope
+    run: descope --help
+    env:
+      DESCOPE_PROJECT_ID: P...
+      DESCOPE_MANAGEMENT_KEY: ${{ steps.token.outputs.token }}
 ```
 
 <br/>
