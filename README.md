@@ -100,6 +100,22 @@ export DESCOPE_MANAGEMENT_KEY='K...'
 descope --help
 ```
 
+`DESCOPE_MANAGEMENT_KEY` also accepts a workload identity token instead of a static
+management key, so a CI job can authenticate with the OIDC token it requests for itself
+rather than a stored secret. In a GitHub Actions workflow with `id-token: write`
+permission that looks like this:
+
+```yaml
+- name: Run descope
+  run: descope --help
+  env:
+    DESCOPE_PROJECT_ID: P...
+    DESCOPE_MANAGEMENT_KEY: ${{ steps.token.outputs.token }}
+```
+
+The token's issuer must be registered as a trusted issuer for your company, under
+Company -> Workload Identity in the Descope console.
+
 ```
 A command line utility for working with the Descope management APIs
 

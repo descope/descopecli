@@ -48,8 +48,8 @@ func createDescopeClient(args []string, company bool, project bool) (*client.Des
 	if config.ManagementKey == "" {
 		return nil, errors.New("the " + descope.EnvironmentVariableManagementKey + " environment variable must be set")
 	}
-	if !strings.HasPrefix(config.ManagementKey, "K") {
-		return nil, errors.New("the " + descope.EnvironmentVariableManagementKey + " environment variable must be a valid management key")
+	if !isValidManagementCredential(config.ManagementKey) {
+		return nil, errors.New("the " + descope.EnvironmentVariableManagementKey + " environment variable must be a valid management key or workload identity token")
 	}
 
 	if company {
@@ -70,4 +70,13 @@ func createDescopeClient(args []string, company bool, project bool) (*client.Des
 	}
 
 	return client.NewWithConfig(config)
+}
+
+// The management credential is either a static management key, which starts with "K", or a
+// workload identity token, such as the OIDC token a GitHub Actions job requests for itself,
+// which is a compact JWS with three dot-separated parts. This is only a shape check to catch
+// an obviously wrong environment variable early: the server decides which credential it got
+// and whether it is trusted.
+func isValidManagementCredential(key string) bool {
+	return strings.HasPrefix(key, "K") || strings.Count(key, ".") == 2
 }
