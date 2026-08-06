@@ -83,16 +83,24 @@ You can build the `descope` command line tool directly with the `go` compiler:
 -   The Descope project's `Project ID` is required by `descope` to know which project
     to work with. You can find it in the [Project section](https://app.descope.com/settings/project)
     in the Descope console.
--   You'll also need a valid Descope management key for the above project. You can create
-    a management key in the [Company section](https://app.descope.com/settings/company) in
-    the Descope console.
+-   You'll also need credentials for the above project, either a management key or a
+    workload identity token. You can create a management key in the
+    [Company section](https://app.descope.com/settings/company) in the Descope console.
 
 ### Usage
 
-All `descope` commands expect the Descope management key to be provided in
-the `DESCOPE_MANAGEMENT_KEY` environment variable. You'll have to provide your
-Descope project's unique id either in the `DESCOPE_PROJECT_ID` environment
-variable or as a command argument, depending on the command.
+All `descope` commands expect credentials to be provided in one of two environment
+variables:
+
+| Variable | Value |
+|----------|-------|
+| `DESCOPE_MANAGEMENT_KEY` | A management key created in the Descope console. |
+| `WORKLOAD_IDENTITY_TOKEN` | A workload identity token, for CI jobs that authenticate with the OIDC token they request for themselves rather than a stored secret. See [Using a workload identity token](#using-a-workload-identity-token). |
+
+Set whichever one suits how the command is being run. If both are set the workload
+identity token is used. You'll also have to provide your Descope project's unique id
+either in the `DESCOPE_PROJECT_ID` environment variable or as a command argument,
+depending on the command.
 
 ```bash
 export DESCOPE_PROJECT_ID='P...'
@@ -123,9 +131,9 @@ Additional Commands:
 
 #### Using a workload identity token
 
-`DESCOPE_MANAGEMENT_KEY` also accepts a workload identity token instead of a static
-management key, so a CI job can authenticate with the short-lived OIDC token it requests
-for itself and you don't have to store a management key as a secret.
+Set `WORKLOAD_IDENTITY_TOKEN` instead of `DESCOPE_MANAGEMENT_KEY` to authenticate a CI
+job with the short-lived OIDC token it requests for itself, so there's no management key
+to store as a secret, leak or rotate.
 
 The issuer must first be registered as a trusted issuer for your company, under
 Company -> Workload Identity in the Descope console. That configuration decides which
@@ -154,7 +162,7 @@ steps:
     run: descope --help
     env:
       DESCOPE_PROJECT_ID: P...
-      DESCOPE_MANAGEMENT_KEY: ${{ steps.token.outputs.token }}
+      WORKLOAD_IDENTITY_TOKEN: ${{ steps.token.outputs.token }}
 ```
 
 <br/>

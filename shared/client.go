@@ -10,6 +10,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// The Descope SDK doesn't define this one, since it takes the credential as a config field rather
+// than reading it from the environment itself.
+const EnvironmentVariableWorkloadIdentityToken = "WORKLOAD_IDENTITY_TOKEN" // gitleaks:allow
+
 var Descope *client.DescopeClient
 
 func DefaultPreRun(cmd *cobra.Command, args []string) (err error) {
@@ -45,11 +49,19 @@ func createDescopeClient(args []string, company bool, project bool) (*client.Des
 		DescopeBaseURL: os.Getenv(descope.EnvironmentVariableBaseURL),
 	}
 
+	// a workload identity token is a short lived alternative to a static management key, so a CI job
+	// can authenticate with the OIDC token it requests for itself instead of a stored secret, it is
+	// sent to the server the same way and takes precedence when both variables are set
+	credentialEnvVar := descope.EnvironmentVariableManagementKey
+	if token := os.Getenv(EnvironmentVariableWorkloadIdentityToken); token != "" {
+		config.ManagementKey, credentialEnvVar = token, EnvironmentVariableWorkloadIdentityToken
+	}
+
 	if config.ManagementKey == "" {
-		return nil, errors.New("the " + descope.EnvironmentVariableManagementKey + " environment variable must be set")
+		return nil, errors.New("the " + descope.EnvironmentVariableManagementKey + " or " + EnvironmentVariableWorkloadIdentityToken + " environment variable must be set")
 	}
 	if !isValidManagementCredential(config.ManagementKey) {
-		return nil, errors.New("the " + descope.EnvironmentVariableManagementKey + " environment variable must be a valid management key or workload identity token")
+		return nil, errors.New("the " + credentialEnvVar + " environment variable must be a valid management key or workload identity token")
 	}
 
 	if company {
