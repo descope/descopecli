@@ -95,7 +95,7 @@ variables:
 | Variable | Value |
 |----------|-------|
 | `DESCOPE_MANAGEMENT_KEY` | A management key created in the Descope console. |
-| `WORKLOAD_IDENTITY_TOKEN` | A workload identity token, for CI jobs that authenticate with the OIDC token they request for themselves rather than a stored secret. See [Using a workload identity token](#using-a-workload-identity-token). |
+| `DESCOPE_WORKLOAD_IDENTITY_TOKEN` | A workload identity token, for CI jobs that authenticate with the OIDC token they request for themselves rather than a stored secret. See [Using a workload identity token](#using-a-workload-identity-token). |
 
 Set whichever one suits how the command is being run. If both are set the workload
 identity token is used. You'll also have to provide your Descope project's unique id
@@ -109,7 +109,7 @@ export DESCOPE_PROJECT_ID='P...'
 export DESCOPE_MANAGEMENT_KEY='K...'
 
 # or with a workload identity token
-export WORKLOAD_IDENTITY_TOKEN='eyJ...'
+export DESCOPE_WORKLOAD_IDENTITY_TOKEN='eyJ...'
 
 descope --help
 ```
@@ -137,7 +137,7 @@ Additional Commands:
 
 #### Using a workload identity token
 
-Set `WORKLOAD_IDENTITY_TOKEN` instead of `DESCOPE_MANAGEMENT_KEY` to authenticate a CI
+Set `DESCOPE_WORKLOAD_IDENTITY_TOKEN` instead of `DESCOPE_MANAGEMENT_KEY` to authenticate a CI
 job with the short-lived OIDC token it requests for itself, so there's no management key
 to store as a secret, leak or rotate.
 
@@ -175,7 +175,7 @@ steps:
       files_path: ${{ env.FILES_PATH }}
 ```
 
-When running the `descope` binary directly, set the token in the `WORKLOAD_IDENTITY_TOKEN`
+When running the `descope` binary directly, set the token in the `DESCOPE_WORKLOAD_IDENTITY_TOKEN`
 environment variable instead:
 
 ```yaml
@@ -183,7 +183,7 @@ environment variable instead:
     run: descope project snapshot export "$DESCOPE_PROJECT_ID" --path ./descope_export
     env:
       DESCOPE_PROJECT_ID: P...
-      WORKLOAD_IDENTITY_TOKEN: ${{ steps.token.outputs.token }}
+      DESCOPE_WORKLOAD_IDENTITY_TOKEN: ${{ steps.token.outputs.token }}
 ```
 
 <br/>

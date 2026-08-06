@@ -54,7 +54,7 @@ runs:
       shell: bash
       env:
         MANAGEMENT_KEY: ${{ inputs.management_key }}
-        WORKLOAD_IDENTITY_TOKEN: ${{ inputs.workload_identity_token }}
+        DESCOPE_WORKLOAD_IDENTITY_TOKEN: ${{ inputs.workload_identity_token }}
       run: |
         echo "Checking action state"
         if [ -z "${{ inputs.project_id }}" ]; then
@@ -64,10 +64,10 @@ runs:
         if [ -n "$MANAGEMENT_KEY" ]; then
           echo ::add-mask::$MANAGEMENT_KEY
         fi
-        if [ -n "$WORKLOAD_IDENTITY_TOKEN" ]; then
-          echo ::add-mask::$WORKLOAD_IDENTITY_TOKEN
+        if [ -n "$DESCOPE_WORKLOAD_IDENTITY_TOKEN" ]; then
+          echo ::add-mask::$DESCOPE_WORKLOAD_IDENTITY_TOKEN
         fi
-        if [ -z "$MANAGEMENT_KEY" ] && [ -z "$WORKLOAD_IDENTITY_TOKEN" ]; then
+        if [ -z "$MANAGEMENT_KEY" ] && [ -z "$DESCOPE_WORKLOAD_IDENTITY_TOKEN" ]; then
           echo "Either the management_key or the workload_identity_token input is required for this action to run"
           exit 1
         fi
@@ -86,7 +86,7 @@ runs:
       shell: bash
       env:
         DESCOPE_MANAGEMENT_KEY: ${{ inputs.management_key }}
-        WORKLOAD_IDENTITY_TOKEN: ${{ inputs.workload_identity_token }}
+        DESCOPE_WORKLOAD_IDENTITY_TOKEN: ${{ inputs.workload_identity_token }}
         DESCOPE_BASE_URL: ${{ inputs.descope_base_url }}
       run: |
         echo "Validating snapshot"
@@ -113,7 +113,7 @@ runs:
       shell: bash
       env:
         DESCOPE_MANAGEMENT_KEY: ${{ inputs.management_key }}
-        WORKLOAD_IDENTITY_TOKEN: ${{ inputs.workload_identity_token }}
+        DESCOPE_WORKLOAD_IDENTITY_TOKEN: ${{ inputs.workload_identity_token }}
         DESCOPE_BASE_URL: ${{ inputs.descope_base_url }}
       run: |
         echo "Importing snapshot"
