@@ -40,21 +40,15 @@ func StandalonePreRun(cmd *cobra.Command, _ []string) error {
 }
 
 func createDescopeClient(args []string, company bool, project bool) (*client.DescopeClient, error) {
+	credential, credentialEnvVar := managementCredential()
+
 	config := &client.Config{
 		// optional as an environment variable in some commands
 		ProjectID: os.Getenv(descope.EnvironmentVariableProjectID),
 		// generate a management key in the Company section of the admin console: https://app.descope.com/settings/company
-		ManagementKey: os.Getenv(descope.EnvironmentVariableManagementKey),
+		ManagementKey: credential,
 		// doesn't need to be specified in regular use
 		DescopeBaseURL: os.Getenv(descope.EnvironmentVariableBaseURL),
-	}
-
-	// a workload identity token is a short lived alternative to a static management key, so a CI job
-	// can authenticate with the OIDC token it requests for itself instead of a stored secret, it is
-	// sent to the server the same way and takes precedence when both variables are set
-	credentialEnvVar := descope.EnvironmentVariableManagementKey
-	if token := os.Getenv(EnvironmentVariableWorkloadIdentityToken); token != "" {
-		config.ManagementKey, credentialEnvVar = token, EnvironmentVariableWorkloadIdentityToken
 	}
 
 	if config.ManagementKey == "" {
@@ -82,6 +76,19 @@ func createDescopeClient(args []string, company bool, project bool) (*client.Des
 	}
 
 	return client.NewWithConfig(config)
+}
+
+// The management credential is read from one of two environment variables, and the workload identity
+// token wins when both are set. Returns the credential and the variable it was read from, so that a
+// validation failure can name the variable the user actually set.
+func managementCredential() (credential string, envVar string) {
+	// a workload identity token is a short lived alternative to a static management key, so a CI job
+	// can authenticate with the OIDC token it requests for itself instead of a stored secret, it is
+	// sent to the server the same way and so it goes in the same config field
+	if token := os.Getenv(EnvironmentVariableWorkloadIdentityToken); token != "" {
+		return token, EnvironmentVariableWorkloadIdentityToken
+	}
+	return os.Getenv(descope.EnvironmentVariableManagementKey), descope.EnvironmentVariableManagementKey
 }
 
 // The management credential is either a static management key, which starts with "K", or a

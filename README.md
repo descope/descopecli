@@ -104,7 +104,13 @@ depending on the command.
 
 ```bash
 export DESCOPE_PROJECT_ID='P...'
+
+# with a management key
 export DESCOPE_MANAGEMENT_KEY='K...'
+
+# or with a workload identity token
+export WORKLOAD_IDENTITY_TOKEN='eyJ...'
+
 descope --help
 ```
 
@@ -141,11 +147,14 @@ subjects and audiences are accepted, so the token has to be requested with an au
 the trusted issuer allows.
 
 In GitHub Actions the job needs `id-token: write` permission and a step that mints the
-token, since the permission alone doesn't produce one:
+token, since the permission alone doesn't produce one. The `import` and `export` actions
+in this repository take the token as a `workload_identity_token` input, in place of the
+`management_key` input:
 
 ```yaml
 permissions:
   id-token: write
+  contents: read
 
 steps:
   - name: Request an OIDC token
@@ -158,8 +167,20 @@ steps:
         core.setSecret(token)
         core.setOutput('token', token)
 
+  - name: Export Snapshot
+    uses: descope/descopecli/.github/actions/export@main
+    with:
+      project_id: ${{ vars.PRODUCTION_PROJECT_ID }}
+      workload_identity_token: ${{ steps.token.outputs.token }}
+      files_path: ${{ env.FILES_PATH }}
+```
+
+When running the `descope` binary directly, set the token in the `WORKLOAD_IDENTITY_TOKEN`
+environment variable instead:
+
+```yaml
   - name: Run descope
-    run: descope --help
+    run: descope project snapshot export "$DESCOPE_PROJECT_ID" --path ./descope_export
     env:
       DESCOPE_PROJECT_ID: P...
       WORKLOAD_IDENTITY_TOKEN: ${{ steps.token.outputs.token }}

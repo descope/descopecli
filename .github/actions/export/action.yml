@@ -13,8 +13,9 @@ inputs:
     description: 'The id of the Descope project to export from'
     required: true
   management_key:
-    description: 'The management key for the Descope project'
-    required: true
+    description: 'The management key for the Descope project, unless a workload_identity_token is provided'
+  workload_identity_token:
+    description: 'A workload identity token to authenticate with instead of a management key, e.g. the OIDC token the job requests for itself'
   files_path:
     description: 'The path to the snapshot files (i.e., the directory containing the snapshot.json file)'
     default: '.'
@@ -39,6 +40,9 @@ runs:
 
     - name: Check State
       shell: bash
+      env:
+        MANAGEMENT_KEY: ${{ inputs.management_key }}
+        WORKLOAD_IDENTITY_TOKEN: ${{ inputs.workload_identity_token }}
       run: |
         set +e
         echo "Checking action state"
@@ -46,10 +50,14 @@ runs:
           echo "The project_id input is required for this action to run"
           exit 1
         fi
-        MANAGEMENT_KEY="$(jq -r '.inputs.management_key' $GITHUB_EVENT_PATH)"
-        echo ::add-mask::$MANAGEMENT_KEY
-        if [ -z "$MANAGEMENT_KEY" ]; then
-          echo "The management_key input is required for this action to run"
+        if [ -n "$MANAGEMENT_KEY" ]; then
+          echo ::add-mask::$MANAGEMENT_KEY
+        fi
+        if [ -n "$WORKLOAD_IDENTITY_TOKEN" ]; then
+          echo ::add-mask::$WORKLOAD_IDENTITY_TOKEN
+        fi
+        if [ -z "$MANAGEMENT_KEY" ] && [ -z "$WORKLOAD_IDENTITY_TOKEN" ]; then
+          echo "Either the management_key or the workload_identity_token input is required for this action to run"
           exit 1
         fi
         if [ -z "${{ inputs.files_path }}" ]; then
@@ -70,6 +78,7 @@ runs:
       shell: bash
       env:
         DESCOPE_MANAGEMENT_KEY: ${{ inputs.management_key }}
+        WORKLOAD_IDENTITY_TOKEN: ${{ inputs.workload_identity_token }}
         DESCOPE_BASE_URL: ${{ inputs.descope_base_url }}
       run: |
         echo "Exporting snapshot"
