@@ -172,7 +172,7 @@ steps:
     with:
       project_id: ${{ vars.PRODUCTION_PROJECT_ID }}
       workload_identity_token: ${{ steps.token.outputs.token }}
-      files_path: ${{ env.FILES_PATH }}
+      files_path: ./descope_export
 ```
 
 When running the `descope` binary directly, set the token in the `DESCOPE_WORKLOAD_IDENTITY_TOKEN`
