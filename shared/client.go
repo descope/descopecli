@@ -12,6 +12,14 @@ import (
 
 const EnvironmentVariableWorkloadIdentityToken = "DESCOPE_WORKLOAD_IDENTITY_TOKEN" // gitleaks:allow
 
+// EnvironmentVariableManagementKeyID names the management key a workload identity token acts as. It is an
+// identifier, not a secret, so it belongs in a CI variable rather than a CI secret.
+const EnvironmentVariableManagementKeyID = "DESCOPE_MANAGEMENT_KEY_ID"
+
+// A management key ID is far shorter than a whole management key. Used only to catch the easy mistake of pasting
+// the key itself into the key-ID variable, which would put a secret somewhere unmasked.
+const maxManagementKeyIDLength = 70
+
 var Descope *client.DescopeClient
 
 func DefaultPreRun(cmd *cobra.Command, args []string) (err error) {
@@ -38,7 +46,10 @@ func StandalonePreRun(cmd *cobra.Command, _ []string) error {
 }
 
 func createDescopeClient(args []string, company bool, project bool) (*client.DescopeClient, error) {
-	credential, envVar := managementCredential()
+	credential, envVar, err := managementCredential()
+	if err != nil {
+		return nil, err
+	}
 	config := &client.Config{
 		// optional as an environment variable in some commands
 		ProjectID: os.Getenv(descope.EnvironmentVariableProjectID),
@@ -75,11 +86,27 @@ func createDescopeClient(args []string, company bool, project bool) (*client.Des
 	return client.NewWithConfig(config)
 }
 
-func managementCredential() (credential string, envVar string) {
+// managementCredential resolves the credential the Management API is called with.
+//
+// A static management key is used as-is. A workload identity token is not a credential on its own: the API
+// authorizes it as one specific management key, the way sts:AssumeRoleWithWebIdentity requires a RoleArn. So the
+// token is paired with that key's ID, and the SDK joins the pair onto the project ID to produce
+// `Bearer <projectId>:<jwt>:<keyId>`.
+func managementCredential() (credential string, envVar string, err error) {
 	if token := os.Getenv(EnvironmentVariableWorkloadIdentityToken); token != "" {
-		return token, EnvironmentVariableWorkloadIdentityToken
+		keyID := os.Getenv(EnvironmentVariableManagementKeyID)
+		if keyID == "" {
+			return "", EnvironmentVariableWorkloadIdentityToken, errors.New("the " + EnvironmentVariableManagementKeyID +
+				" environment variable must be set alongside " + EnvironmentVariableWorkloadIdentityToken +
+				": a workload identity token acts as a specific management key, so it has to name one")
+		}
+		if len(keyID) >= maxManagementKeyIDLength {
+			return "", EnvironmentVariableManagementKeyID, errors.New("the " + EnvironmentVariableManagementKeyID +
+				" environment variable looks like a whole management key rather than a key ID")
+		}
+		return token + ":" + keyID, EnvironmentVariableWorkloadIdentityToken, nil
 	}
-	return os.Getenv(descope.EnvironmentVariableManagementKey), descope.EnvironmentVariableManagementKey
+	return os.Getenv(descope.EnvironmentVariableManagementKey), descope.EnvironmentVariableManagementKey, nil
 }
 
 // The management credential is either a static management key, which starts with "K", or a
@@ -88,5 +115,10 @@ func managementCredential() (credential string, envVar string) {
 // an obviously wrong environment variable early: the server decides which credential it got
 // and whether it is trusted.
 func isValidManagementCredential(key string) bool {
-	return strings.HasPrefix(key, "K") || strings.Count(key, ".") == 2
+	if strings.HasPrefix(key, "K") {
+		return true
+	}
+	// A workload identity credential is the token and the key it acts as, joined.
+	token, keyID, paired := strings.Cut(key, ":")
+	return paired && strings.Count(token, ".") == 2 && strings.HasPrefix(keyID, "K")
 }
