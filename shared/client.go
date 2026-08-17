@@ -93,7 +93,17 @@ func createDescopeClient(args []string, company bool, project bool) (*client.Des
 // token is paired with that key's ID, and the SDK joins the pair onto the project ID to produce
 // `Bearer <projectId>:<jwt>:<keyId>`.
 func managementCredential() (credential string, envVar string, err error) {
-	if token := os.Getenv(EnvironmentVariableWorkloadIdentityToken); token != "" {
+	token := os.Getenv(EnvironmentVariableWorkloadIdentityToken)
+	managementKey := os.Getenv(descope.EnvironmentVariableManagementKey)
+	// The two credentials are exclusive on the server: a management key that a workload identity token acts as
+	// refuses its own secret. Setting both can only be a misconfiguration, and silently preferring one would
+	// surface later as an authorization failure that names neither variable.
+	if token != "" && managementKey != "" {
+		return "", EnvironmentVariableWorkloadIdentityToken, errors.New("the " + descope.EnvironmentVariableManagementKey +
+			" and " + EnvironmentVariableWorkloadIdentityToken + " environment variables are exclusive, set only one:" +
+			" a management key that a workload identity token acts as does not accept its own secret")
+	}
+	if token != "" {
 		keyID := os.Getenv(EnvironmentVariableManagementKeyID)
 		if keyID == "" {
 			return "", EnvironmentVariableWorkloadIdentityToken, errors.New("the " + EnvironmentVariableManagementKeyID +
@@ -106,7 +116,7 @@ func managementCredential() (credential string, envVar string, err error) {
 		}
 		return token + ":" + keyID, EnvironmentVariableWorkloadIdentityToken, nil
 	}
-	return os.Getenv(descope.EnvironmentVariableManagementKey), descope.EnvironmentVariableManagementKey, nil
+	return managementKey, descope.EnvironmentVariableManagementKey, nil
 }
 
 // The management credential is either a static management key, which starts with "K", or a

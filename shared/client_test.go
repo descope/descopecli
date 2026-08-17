@@ -68,13 +68,16 @@ func TestCredentialEnvironmentVariables(t *testing.T) {
 		{"neither set", "", "", "", descope.EnvironmentVariableManagementKey + " or " + EnvironmentVariableWorkloadIdentityToken},
 		{"management key only", testManagementKey, "", "", ""},
 		{"token with its key id", "", testToken, testManagementKeyID, ""},
-		{"token takes precedence over key", testManagementKey, testToken, testManagementKeyID, ""},
+		// The credentials are exclusive on the server, so setting both is rejected here rather than silently
+		// resolved in favour of one of them.
+		{"management key and token together", testManagementKey, testToken, testManagementKeyID,
+			descope.EnvironmentVariableManagementKey + " and " + EnvironmentVariableWorkloadIdentityToken},
 		// A token alone cannot be authorized: the API needs to know which key it is acting as.
 		{"token without a key id", "", testToken, "", EnvironmentVariableManagementKeyID},
 		// Pasting the whole key into the key-ID variable puts a secret somewhere unmasked.
 		{"whole management key in the key id slot", "", testToken, strings.Repeat("K", 80), EnvironmentVariableManagementKeyID},
 		// the error has to name the variable the bad value actually came from
-		{"bad token with a valid key set", testManagementKey, "garbage", testManagementKeyID, EnvironmentVariableWorkloadIdentityToken},
+		{"bad token", "", "garbage", testManagementKeyID, EnvironmentVariableWorkloadIdentityToken},
 		{"bad management key", "garbage", "", "", descope.EnvironmentVariableManagementKey},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
