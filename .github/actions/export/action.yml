@@ -16,6 +16,8 @@ inputs:
     description: 'The management key for the Descope project, unless a workload_identity_token is provided'
   workload_identity_token:
     description: 'A workload identity token to authenticate with instead of a management key, e.g. the OIDC token the job requests for itself'
+  management_key_id:
+    description: 'The id of the management key a workload_identity_token acts as, required with it. An identifier rather than a secret, so it belongs in a CI variable'
   files_path:
     description: 'The path to the snapshot files (i.e., the directory containing the snapshot.json file)'
     default: '.'
@@ -43,6 +45,7 @@ runs:
       env:
         MANAGEMENT_KEY: ${{ inputs.management_key }}
         DESCOPE_WORKLOAD_IDENTITY_TOKEN: ${{ inputs.workload_identity_token }}
+        DESCOPE_MANAGEMENT_KEY_ID: ${{ inputs.management_key_id }}
       run: |
         set +e
         echo "Checking action state"
@@ -58,6 +61,16 @@ runs:
         fi
         if [ -z "$MANAGEMENT_KEY" ] && [ -z "$DESCOPE_WORKLOAD_IDENTITY_TOKEN" ]; then
           echo "Either the management_key or the workload_identity_token input is required for this action to run"
+          exit 1
+        fi
+        # A management key that a workload identity token acts as does not accept its own secret, so the two
+        # credentials are exclusive rather than one falling back to the other
+        if [ -n "$MANAGEMENT_KEY" ] && [ -n "$DESCOPE_WORKLOAD_IDENTITY_TOKEN" ]; then
+          echo "The management_key and workload_identity_token inputs are exclusive, provide only one"
+          exit 1
+        fi
+        if [ -n "$DESCOPE_WORKLOAD_IDENTITY_TOKEN" ] && [ -z "$DESCOPE_MANAGEMENT_KEY_ID" ]; then
+          echo "The management_key_id input is required alongside workload_identity_token, naming the management key the token acts as"
           exit 1
         fi
         if [ -z "${{ inputs.files_path }}" ]; then
@@ -79,6 +92,7 @@ runs:
       env:
         DESCOPE_MANAGEMENT_KEY: ${{ inputs.management_key }}
         DESCOPE_WORKLOAD_IDENTITY_TOKEN: ${{ inputs.workload_identity_token }}
+        DESCOPE_MANAGEMENT_KEY_ID: ${{ inputs.management_key_id }}
         DESCOPE_BASE_URL: ${{ inputs.descope_base_url }}
       run: |
         echo "Exporting snapshot"

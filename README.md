@@ -95,12 +95,14 @@ variables:
 | Variable | Value |
 |----------|-------|
 | `DESCOPE_MANAGEMENT_KEY` | A management key created in the Descope console. |
-| `DESCOPE_WORKLOAD_IDENTITY_TOKEN` | A workload identity token, for CI jobs that authenticate with the OIDC token they request for themselves rather than a stored secret. See [Using a workload identity token](#using-a-workload-identity-token). |
+| `DESCOPE_WORKLOAD_IDENTITY_TOKEN` | A workload identity token, for CI jobs that authenticate with the OIDC token they request for themselves rather than a stored secret. Requires `DESCOPE_MANAGEMENT_KEY_ID`. See [Using a workload identity token](#using-a-workload-identity-token). |
+| `DESCOPE_MANAGEMENT_KEY_ID` | The id of the management key a workload identity token acts as. An identifier rather than a secret, so it belongs in a CI variable. |
 
-Set whichever one suits how the command is being run. If both are set the workload
-identity token is used. You'll also have to provide your Descope project's unique id
-either in the `DESCOPE_PROJECT_ID` environment variable or as a command argument,
-depending on the command.
+Set whichever suits how the command is being run. The two credentials are exclusive: a
+management key that a workload identity token acts as does not accept its own secret, so
+setting both is rejected rather than resolved in favour of one. You'll also have to provide
+your Descope project's unique id either in the `DESCOPE_PROJECT_ID` environment variable or
+as a command argument, depending on the command.
 
 ```bash
 export DESCOPE_PROJECT_ID='P...'
@@ -108,8 +110,9 @@ export DESCOPE_PROJECT_ID='P...'
 # with a management key
 export DESCOPE_MANAGEMENT_KEY='K...'
 
-# or with a workload identity token
+# or with a workload identity token, naming the management key it acts as
 export DESCOPE_WORKLOAD_IDENTITY_TOKEN='eyJ...'
+export DESCOPE_MANAGEMENT_KEY_ID='K...'
 
 descope --help
 ```
@@ -141,15 +144,21 @@ Set `DESCOPE_WORKLOAD_IDENTITY_TOKEN` instead of `DESCOPE_MANAGEMENT_KEY` to aut
 job with the short-lived OIDC token it requests for itself, so there's no management key
 to store as a secret, leak or rotate.
 
-The issuer must first be registered as a trusted issuer for your company, under
-Company -> Workload Identity in the Descope console. That configuration decides which
-subjects and audiences are accepted, so the token has to be requested with an audience
-the trusted issuer allows.
+The token is not a credential on its own. The Management API authorizes it as one specific
+management key, the way `sts:AssumeRoleWithWebIdentity` requires a role to assume, so
+`DESCOPE_MANAGEMENT_KEY_ID` has to name that key. The key's permissions decide what the
+token can do. That key holds no usable secret: it authenticates only through a token from
+its trusted issuer, and presenting a static secret for it is refused.
+
+The issuer must first be registered as a trusted issuer for your company, which creates the
+management key at the same time and returns its id. That configuration decides which
+subjects and audiences are accepted, so the token has to be requested with the audience the
+trusted issuer was registered with.
 
 In GitHub Actions the job needs `id-token: write` permission and a step that mints the
 token, since the permission alone doesn't produce one. The `import` and `export` actions
 in this repository take the token as a `workload_identity_token` input, in place of the
-`management_key` input:
+`management_key` input, alongside a `management_key_id`:
 
 ```yaml
 permissions:
@@ -162,8 +171,8 @@ steps:
     uses: actions/github-script@v7
     with:
       script: |
-        // the audience must match one configured on the trusted issuer
-        const token = await core.getIDToken('descope')
+        // the audience must match the one the trusted issuer was registered with
+        const token = await core.getIDToken('https://api.descope.com')
         core.setSecret(token)
         core.setOutput('token', token)
 
@@ -172,11 +181,12 @@ steps:
     with:
       project_id: ${{ vars.PRODUCTION_PROJECT_ID }}
       workload_identity_token: ${{ steps.token.outputs.token }}
+      management_key_id: ${{ vars.DESCOPE_MANAGEMENT_KEY_ID }}
       files_path: ./descope_export
 ```
 
-When running the `descope` binary directly, set the token in the `DESCOPE_WORKLOAD_IDENTITY_TOKEN`
-environment variable instead:
+When running the `descope` binary directly, set the token and the key it acts as in
+environment variables instead:
 
 ```yaml
   - name: Run descope
@@ -184,6 +194,7 @@ environment variable instead:
     env:
       DESCOPE_PROJECT_ID: P...
       DESCOPE_WORKLOAD_IDENTITY_TOKEN: ${{ steps.token.outputs.token }}
+      DESCOPE_MANAGEMENT_KEY_ID: ${{ vars.DESCOPE_MANAGEMENT_KEY_ID }}
 ```
 
 <br/>
