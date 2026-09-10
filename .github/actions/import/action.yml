@@ -13,11 +13,9 @@ inputs:
     description: 'The id of the Descope project to import into'
     required: true
   management_key:
-    description: 'The management key for the Descope project, unless management_key_id is provided'
-  management_key_id:
-    description: 'The id of the management key to assume through workload identity federation. The action requests the job an OIDC token for it, so no management key secret is stored. Requires the job to grant `id-token: write`. An identifier rather than a secret, so it belongs in a CI variable'
+    description: 'The management key for the Descope project, unless token_audience is provided'
   token_audience:
-    description: 'Overrides the audience the workload identity token is requested for. Defaults to `<descope_base_url or https://api.descope.com>/<management_key_id>`, which is what the Descope API derives and expects'
+    description: 'The audience to request a workload identity token for, instead of using a management key. Descope chooses it and names the management key being assumed inside it, so read it back from the key rather than composing it. Requires the job to grant `id-token: write`. Not a secret, so it belongs in a CI variable'
   secrets:
     description: 'An optional JSON value with additional secrets to inject into the import data'
     default: '[]'
@@ -56,7 +54,7 @@ runs:
       shell: bash
       env:
         MANAGEMENT_KEY: ${{ inputs.management_key }}
-        MANAGEMENT_KEY_ID: ${{ inputs.management_key_id }}
+        TOKEN_AUDIENCE: ${{ inputs.token_audience }}
       run: |
         echo "Checking action state"
         if [ -z "${{ inputs.project_id }}" ]; then
@@ -66,14 +64,14 @@ runs:
         if [ -n "$MANAGEMENT_KEY" ]; then
           echo ::add-mask::$MANAGEMENT_KEY
         fi
-        if [ -z "$MANAGEMENT_KEY" ] && [ -z "$MANAGEMENT_KEY_ID" ]; then
-          echo "Either the management_key or the management_key_id input is required for this action to run"
+        if [ -z "$MANAGEMENT_KEY" ] && [ -z "$TOKEN_AUDIENCE" ]; then
+          echo "Either the management_key or the token_audience input is required for this action to run"
           exit 1
         fi
-        # A management key that a workload identity token acts as does not accept its own secret, so the two
+        # A management key that a workload token acts as does not accept its own secret, so the two
         # credentials are exclusive rather than one falling back to the other
-        if [ -n "$MANAGEMENT_KEY" ] && [ -n "$MANAGEMENT_KEY_ID" ]; then
-          echo "The management_key and management_key_id inputs are exclusive, provide only one"
+        if [ -n "$MANAGEMENT_KEY" ] && [ -n "$TOKEN_AUDIENCE" ]; then
+          echo "The management_key and token_audience inputs are exclusive, provide only one"
           exit 1
         fi
         if [ -z "${{ inputs.files_path }}" ]; then
@@ -85,32 +83,26 @@ runs:
           exit 1
         fi
 
-    - name: Request Workload Identity Token
-      if: ${{ inputs.management_key_id != '' && inputs.management_key == '' }}
+    - name: Request Workload Token
+      if: ${{ inputs.token_audience != '' && inputs.management_key == '' }}
       id: wif
       shell: bash
       env:
-        MANAGEMENT_KEY_ID: ${{ inputs.management_key_id }}
         TOKEN_AUDIENCE: ${{ inputs.token_audience }}
-        DESCOPE_BASE_URL: ${{ inputs.descope_base_url }}
       run: |
         if [ -z "$ACTIONS_ID_TOKEN_REQUEST_URL" ] || [ -z "$ACTIONS_ID_TOKEN_REQUEST_TOKEN" ]; then
           echo "No OIDC token endpoint is available, add 'permissions: id-token: write' to the job"
           exit 1
         fi
-        # The Descope API names the management key being assumed by the token's audience, so it has to be
-        # requested for exactly `<apiBaseUrl>/<keyId>` and cannot be left to the caller to assemble
+        # The Descope API names the management key being assumed inside the audience, so the token has to
+        # carry the audience the key reports back, unchanged
         audience="$TOKEN_AUDIENCE"
-        if [ -z "$audience" ]; then
-          base="${DESCOPE_BASE_URL:-https://api.descope.com}"
-          audience="${base%/}/$MANAGEMENT_KEY_ID"
-        fi
-        echo "Requesting a workload identity token for audience $audience"
+        echo "Requesting a workload token for audience $audience"
         encoded="$(jq -rn --arg a "$audience" '$a|@uri')"
         token="$(curl -sS -H "Authorization: Bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
           "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=${encoded}" | jq -r '.value // empty')"
         if [ -z "$token" ]; then
-          echo "Failed to obtain a workload identity token from the GitHub OIDC endpoint"
+          echo "Failed to obtain a workload token from the GitHub OIDC endpoint"
           exit 1
         fi
         echo "::add-mask::$token"
@@ -122,7 +114,7 @@ runs:
       shell: bash
       env:
         DESCOPE_MANAGEMENT_KEY: ${{ inputs.management_key }}
-        DESCOPE_WORKLOAD_IDENTITY_TOKEN: ${{ steps.wif.outputs.token }}
+        DESCOPE_WORKLOAD_TOKEN: ${{ steps.wif.outputs.token }}
         DESCOPE_BASE_URL: ${{ inputs.descope_base_url }}
       run: |
         echo "Validating snapshot"
@@ -149,7 +141,7 @@ runs:
       shell: bash
       env:
         DESCOPE_MANAGEMENT_KEY: ${{ inputs.management_key }}
-        DESCOPE_WORKLOAD_IDENTITY_TOKEN: ${{ steps.wif.outputs.token }}
+        DESCOPE_WORKLOAD_TOKEN: ${{ steps.wif.outputs.token }}
         DESCOPE_BASE_URL: ${{ inputs.descope_base_url }}
       run: |
         echo "Importing snapshot"

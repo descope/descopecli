@@ -95,7 +95,7 @@ variables:
 | Variable | Value |
 |----------|-------|
 | `DESCOPE_MANAGEMENT_KEY` | A management key created in the Descope console. |
-| `DESCOPE_WORKLOAD_IDENTITY_TOKEN` | A workload identity token, for CI jobs that authenticate with the OIDC token they request for themselves rather than a stored secret. See [Using a workload identity token](#using-a-workload-identity-token). |
+| `DESCOPE_WORKLOAD_TOKEN` | A workload identity token, for CI jobs that authenticate with the OIDC token they request for themselves rather than a stored secret. See [Using a workload identity token](#using-a-workload-identity-token). |
 
 Set whichever suits how the command is being run. The two credentials are exclusive: a
 management key that a workload identity token acts as does not accept its own secret, so
@@ -110,7 +110,7 @@ export DESCOPE_PROJECT_ID='P...'
 export DESCOPE_MANAGEMENT_KEY='K...'
 
 # or with a workload identity token
-export DESCOPE_WORKLOAD_IDENTITY_TOKEN='eyJ...'
+export DESCOPE_WORKLOAD_TOKEN='eyJ...'
 
 descope --help
 ```
@@ -153,8 +153,8 @@ management key at the same time and returns its id. That configuration decides w
 subjects are accepted.
 
 Because the audience has to match exactly, the `import` and `export` actions request the
-token themselves rather than taking one as an input. Give them the id of the key to assume
-and grant the job `id-token: write`:
+token themselves rather than taking one as an input. Give them the audience and grant the
+job `id-token: write`:
 
 ```yaml
 permissions:
@@ -162,22 +162,23 @@ permissions:
   contents: read
 
 steps:
+  # the export action writes into the working tree and diffs it, so it needs a checkout
+  - uses: actions/checkout@v4
+
   - name: Export Snapshot
     uses: descope/descopecli/.github/actions/export@main
     with:
       project_id: ${{ vars.PRODUCTION_PROJECT_ID }}
-      management_key_id: ${{ vars.DESCOPE_MANAGEMENT_KEY_ID }}
+      token_audience: ${{ vars.DESCOPE_TOKEN_AUDIENCE }}
       files_path: ./descope_export
 ```
 
-The key id is an identifier rather than a secret, so it belongs in a CI variable. If your
-deployment serves the Management API somewhere other than `https://api.descope.com`, set
-`descope_base_url` and the audience follows it, or set `token_audience` to override it
-outright.
+The audience is not a secret, so it belongs in a CI variable. Read it back from the
+management key rather than composing it by hand: Descope chooses it, and it is reported
+read-only on the key.
 
 When running the `descope` binary directly, request the token yourself and put it in
-`DESCOPE_WORKLOAD_IDENTITY_TOKEN`. The audience is what names the key, so it has to be
-`<apiBaseUrl>/<keyId>`:
+`DESCOPE_WORKLOAD_TOKEN`, using the audience the key reports:
 
 ```yaml
   - name: Request an OIDC token
@@ -186,17 +187,17 @@ When running the `descope` binary directly, request the token yourself and put i
     with:
       script: |
         // the audience names the management key being assumed
-        const token = await core.getIDToken(`https://api.descope.com/${process.env.KEY_ID}`)
+        const token = await core.getIDToken(process.env.AUDIENCE)
         core.setSecret(token)
         core.setOutput('token', token)
     env:
-      KEY_ID: ${{ vars.DESCOPE_MANAGEMENT_KEY_ID }}
+      AUDIENCE: ${{ vars.DESCOPE_TOKEN_AUDIENCE }}
 
   - name: Run descope
     run: descope project snapshot export "$DESCOPE_PROJECT_ID" --path ./descope_export
     env:
       DESCOPE_PROJECT_ID: P...
-      DESCOPE_WORKLOAD_IDENTITY_TOKEN: ${{ steps.token.outputs.token }}
+      DESCOPE_WORKLOAD_TOKEN: ${{ steps.token.outputs.token }}
 ```
 
 <br/>
