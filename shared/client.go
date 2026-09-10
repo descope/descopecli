@@ -12,6 +12,8 @@ import (
 
 var Descope *client.DescopeClient
 
+var Version = "" // set by main.go
+
 func DefaultPreRun(cmd *cobra.Command, args []string) (err error) {
 	cmd.SilenceUsage = true
 	Descope, err = createDescopeClient(args, false, false)
@@ -43,6 +45,10 @@ func createDescopeClient(args []string, company bool, project bool) (*client.Des
 		ManagementKey: os.Getenv(descope.EnvironmentVariableManagementKey),
 		// doesn't need to be specified in regular use
 		DescopeBaseURL: os.Getenv(descope.EnvironmentVariableBaseURL),
+		CustomDefaultHeaders: map[string]string{
+			"x-descope-client-name":    "descopecli",
+			"x-descope-client-version": Version,
+		},
 	}
 
 	if config.ManagementKey == "" {
