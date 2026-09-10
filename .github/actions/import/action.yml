@@ -86,27 +86,19 @@ runs:
     - name: Request Workload Token
       if: ${{ inputs.token_audience != '' && inputs.management_key == '' }}
       id: wif
-      shell: bash
+      uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
       env:
         TOKEN_AUDIENCE: ${{ inputs.token_audience }}
-      run: |
-        if [ -z "$ACTIONS_ID_TOKEN_REQUEST_URL" ] || [ -z "$ACTIONS_ID_TOKEN_REQUEST_TOKEN" ]; then
-          echo "No OIDC token endpoint is available, add 'permissions: id-token: write' to the job"
-          exit 1
-        fi
-        # The Descope API names the management key being assumed inside the audience, so the token has to
-        # carry the audience the key reports back, unchanged
-        audience="$TOKEN_AUDIENCE"
-        echo "Requesting a workload token for audience $audience"
-        encoded="$(jq -rn --arg a "$audience" '$a|@uri')"
-        token="$(curl -sS -H "Authorization: Bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
-          "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=${encoded}" | jq -r '.value // empty')"
-        if [ -z "$token" ]; then
-          echo "Failed to obtain a workload token from the GitHub OIDC endpoint"
-          exit 1
-        fi
-        echo "::add-mask::$token"
-        echo "token=$token" >> "$GITHUB_OUTPUT"
+      with:
+        script: |
+          // the audience names the management key being assumed, so it is requested unchanged
+          try {
+            const token = await core.getIDToken(process.env.TOKEN_AUDIENCE)
+            core.setSecret(token)
+            core.setOutput('token', token)
+          } catch (error) {
+            core.setFailed(`Could not request a workload token: ${error.message}. Does the job grant 'permissions: id-token: write'?`)
+          }
 
     - name: Validate Snapshot
       if: ${{ !inputs.import_only }}
