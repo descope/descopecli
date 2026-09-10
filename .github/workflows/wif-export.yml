@@ -1,0 +1,71 @@
+# Example: export a project snapshot using Workload Identity Federation.
+#
+# Proves the CLI can authenticate to the Management API with the short-lived OIDC token this
+# job requests for itself, instead of a stored management key. Nothing secret is configured.
+#
+# The action requests the token itself. It asks GitHub for one whose `aud` is the management
+# key being assumed, `<apiBaseUrl>/<keyId>`, and hands it to the CLI as
+# DESCOPE_WORKLOAD_IDENTITY_TOKEN. The CLI sends `Bearer <projectId>:<jwt>` and the Management
+# API reads the key id back out of the verified audience.
+#
+# This is an example: fill in the three placeholders below before running it. It is
+# workflow_dispatch only, so it never runs on push.
+#
+# Before it can succeed, on the Descope side:
+#   - the management key must be federated to the GitHub issuer
+#     (https://token.actions.githubusercontent.com) with claim filters that match this repo
+#   - the target environment must be running the WIF backend (descope/backend#2038)
+
+name: wif-export
+
+on:
+  workflow_dispatch:
+
+permissions:
+  # REQUIRED - without this GitHub will not mint an OIDC token for the job and the action fails
+  # with "No OIDC token endpoint is available"
+  id-token: write
+  contents: read
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    steps:
+      # the export action writes the snapshot into the working tree and diffs it, so it needs a checkout
+      - uses: actions/checkout@v4
+
+      - name: Export Snapshot
+        id: export
+        uses: descope/descopecli/.github/actions/export@feat/wif-token-credential
+        with:
+          # the project to export from
+          project_id: REPLACE_WITH_PROJECT_ID # P...
+
+          # the management key the token acts as - an identifier, not a secret
+          management_key_id: REPLACE_WITH_MANAGEMENT_KEY_ID # K...
+
+          # the audience the token is requested for, which is what names the key to the API.
+          # omit this to let the action derive `<descope_base_url>/<management_key_id>`, and set
+          # it only when the server's API base URL differs from the URL below
+          token_audience: REPLACE_WITH_AUDIENCE # https://api.descope.com/<management_key_id>
+
+          # where the CLI sends the request
+          descope_base_url: https://api.descope.com
+
+          files_path: ./descope_export
+
+          # build the CLI from the same PR as the action, so both sides speak the new credential
+          descopecli_version: feat/wif-token-credential
+
+      - name: Show the exported snapshot
+        run: |
+          echo "Export completed, files written:"
+          find ./descope_export -type f | head -20
+
+      - name: Upload snapshot artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: project-snapshot
+          path: ./descope_export
+          if-no-files-found: ignore
