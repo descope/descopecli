@@ -10,6 +10,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// EnvironmentVariableWorkloadToken mirrors descope.EnvironmentVariableWorkloadToken from
+// go-sdk#849, name and value. Replace this with the SDK's own constant once that is released.
+const EnvironmentVariableWorkloadToken = "DESCOPE_WORKLOAD_TOKEN" // gitleaks:allow
+
 var Descope *client.DescopeClient
 
 var Version = "" // set by main.go
@@ -38,11 +42,17 @@ func StandalonePreRun(cmd *cobra.Command, _ []string) error {
 }
 
 func createDescopeClient(args []string, company bool, project bool) (*client.DescopeClient, error) {
+	credential, envVar, err := managementCredential()
+	if err != nil {
+		return nil, err
+	}
 	config := &client.Config{
 		// optional as an environment variable in some commands
 		ProjectID: os.Getenv(descope.EnvironmentVariableProjectID),
 		// generate a management key in the Company section of the admin console: https://app.descope.com/settings/company
-		ManagementKey: os.Getenv(descope.EnvironmentVariableManagementKey),
+		// a workload token goes in this same field: the SDK sends either one as the credential in the
+		// authorization header, so from its point of view they are interchangeable and mutually exclusive
+		ManagementKey: credential,
 		// doesn't need to be specified in regular use
 		DescopeBaseURL: os.Getenv(descope.EnvironmentVariableBaseURL),
 		CustomDefaultHeaders: map[string]string{
@@ -52,10 +62,10 @@ func createDescopeClient(args []string, company bool, project bool) (*client.Des
 	}
 
 	if config.ManagementKey == "" {
-		return nil, errors.New("the " + descope.EnvironmentVariableManagementKey + " environment variable must be set")
+		return nil, errors.New("the " + descope.EnvironmentVariableManagementKey + " or " + EnvironmentVariableWorkloadToken + " environment variable must be set")
 	}
-	if !strings.HasPrefix(config.ManagementKey, "K") {
-		return nil, errors.New("the " + descope.EnvironmentVariableManagementKey + " environment variable must be a valid management key")
+	if !isValidManagementCredential(config.ManagementKey) {
+		return nil, errors.New("the " + envVar + " environment variable must be a valid management key or workload token")
 	}
 
 	if company {
@@ -76,4 +86,28 @@ func createDescopeClient(args []string, company bool, project bool) (*client.Des
 	}
 
 	return client.NewWithConfig(config)
+}
+
+func managementCredential() (credential string, envVar string, err error) {
+	token := os.Getenv(EnvironmentVariableWorkloadToken)
+	managementKey := os.Getenv(descope.EnvironmentVariableManagementKey)
+
+	if token != "" && managementKey != "" {
+		return "", EnvironmentVariableWorkloadToken, errors.New("the " + descope.EnvironmentVariableManagementKey +
+			" and " + EnvironmentVariableWorkloadToken + " environment variables are exclusive, set only one:" +
+			" a management key that a workload token acts as does not accept its own secret")
+	}
+	if token != "" {
+		return token, EnvironmentVariableWorkloadToken, nil
+	}
+	return managementKey, descope.EnvironmentVariableManagementKey, nil
+}
+
+func isValidManagementCredential(key string) bool {
+	if strings.HasPrefix(key, "K") {
+		// a static management key
+		return true
+	}
+	// a workload token from a trusted issuer (JWT)
+	return strings.Count(key, ".") == 2
 }

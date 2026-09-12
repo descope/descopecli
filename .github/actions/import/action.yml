@@ -13,8 +13,9 @@ inputs:
     description: 'The id of the Descope project to import into'
     required: true
   management_key:
-    description: 'The management key for the Descope project'
-    required: true
+    description: 'The management key for the Descope project, unless token_audience is provided'
+  token_audience:
+    description: 'The audience to request a workload identity token for, instead of using a management key. Descope chooses it and names the management key being assumed inside it, so read it back from the key rather than composing it. Requires the job to grant `id-token: write`. Not a secret, so it belongs in a CI variable'
   secrets:
     description: 'An optional JSON value with additional secrets to inject into the import data'
     default: '[]'
@@ -29,7 +30,7 @@ inputs:
     type: boolean
   descopecli_version:
     description: 'The version of the descope CLI tool to use'
-    default: 'v0.8.14'
+    default: 'v0.9.0'
   descope_base_url:
     description: 'The base URL used to communicate with Descope servers (for troubleshooting purposes)'
 
@@ -51,16 +52,26 @@ runs:
 
     - name: Check State
       shell: bash
+      env:
+        MANAGEMENT_KEY: ${{ inputs.management_key }}
+        TOKEN_AUDIENCE: ${{ inputs.token_audience }}
       run: |
         echo "Checking action state"
         if [ -z "${{ inputs.project_id }}" ]; then
           echo "The project_id input is required for this action to run"
           exit 1
         fi
-        MANAGEMENT_KEY="$(jq -r '.inputs.management_key' $GITHUB_EVENT_PATH)"
-        echo ::add-mask::$MANAGEMENT_KEY
-        if [ -z "$MANAGEMENT_KEY" ]; then
-          echo "The management_key input is required for this action to run"
+        if [ -n "$MANAGEMENT_KEY" ]; then
+          echo ::add-mask::$MANAGEMENT_KEY
+        fi
+        if [ -z "$MANAGEMENT_KEY" ] && [ -z "$TOKEN_AUDIENCE" ]; then
+          echo "Either the management_key or the token_audience input is required for this action to run"
+          exit 1
+        fi
+        # A management key that a workload token acts as does not accept its own secret, so the two
+        # credentials are exclusive rather than one falling back to the other
+        if [ -n "$MANAGEMENT_KEY" ] && [ -n "$TOKEN_AUDIENCE" ]; then
+          echo "The management_key and token_audience inputs are exclusive, provide only one"
           exit 1
         fi
         if [ -z "${{ inputs.files_path }}" ]; then
@@ -72,12 +83,30 @@ runs:
           exit 1
         fi
 
+    - name: Request Workload Token
+      if: ${{ inputs.token_audience != '' && inputs.management_key == '' }}
+      id: wif
+      uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+      env:
+        TOKEN_AUDIENCE: ${{ inputs.token_audience }}
+      with:
+        script: |
+          // the audience names the management key being assumed, so it is requested unchanged
+          try {
+            const token = await core.getIDToken(process.env.TOKEN_AUDIENCE)
+            core.setSecret(token)
+            core.setOutput('token', token)
+          } catch (error) {
+            core.setFailed(`Could not request a workload token: ${error.message}. Does the job grant 'permissions: id-token: write'?`)
+          }
+
     - name: Validate Snapshot
       if: ${{ !inputs.import_only }}
       id: validate
       shell: bash
       env:
         DESCOPE_MANAGEMENT_KEY: ${{ inputs.management_key }}
+        DESCOPE_WORKLOAD_TOKEN: ${{ steps.wif.outputs.token }}
         DESCOPE_BASE_URL: ${{ inputs.descope_base_url }}
       run: |
         echo "Validating snapshot"
@@ -104,6 +133,7 @@ runs:
       shell: bash
       env:
         DESCOPE_MANAGEMENT_KEY: ${{ inputs.management_key }}
+        DESCOPE_WORKLOAD_TOKEN: ${{ steps.wif.outputs.token }}
         DESCOPE_BASE_URL: ${{ inputs.descope_base_url }}
       run: |
         echo "Importing snapshot"
