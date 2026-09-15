@@ -19,7 +19,7 @@ func TestIsValidManagementCredential(t *testing.T) {
 		valid bool
 	}{
 		{"management key", testManagementKey, true},
-		{"oidc token", testToken, true},
+		{"workload token", testToken, true},
 		{"empty", "", false},
 		{"garbage", "not-a-credential", false},
 		{"partial jwt", "eyJhbGciOiJSUzI1NiJ9.eyJpc3MiOiJ4In0", false},
@@ -33,46 +33,20 @@ func TestIsValidManagementCredential(t *testing.T) {
 	}
 }
 
-// The credential handed to the SDK matters as much as whether it was accepted: the SDK joins it onto the project
-// ID, so the token has to go out alone to produce the `Bearer <projectId>:<jwt>` the Management API expects. The
-// key being assumed travels in the token's `aud`, not in the credential.
-func TestManagementCredentialSendsTokenAlone(t *testing.T) {
-	t.Setenv(descope.EnvironmentVariableManagementKey, "")
-	t.Setenv(EnvironmentVariableWorkloadToken, testToken)
-
-	credential, envVar, err := managementCredential()
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-	if credential != testToken {
-		t.Errorf("credential = %q, want %q", credential, testToken)
-	}
-	if envVar != EnvironmentVariableWorkloadToken {
-		t.Errorf("envVar = %q, want %q", envVar, EnvironmentVariableWorkloadToken)
-	}
-}
-
-func TestCredentialEnvironmentVariables(t *testing.T) {
+// Both credentials arrive in the same variable, so the client has to accept either one there.
+func TestManagementKeyEnvironmentVariable(t *testing.T) {
 	for _, tc := range []struct {
 		name        string
-		mgmtKey     string
-		token       string
+		credential  string
 		errContains string
 	}{
-		{"neither set", "", "", descope.EnvironmentVariableManagementKey + " or " + EnvironmentVariableWorkloadToken},
-		{"management key only", testManagementKey, "", ""},
-		{"token only", "", testToken, ""},
-		// The credentials are exclusive on the server, so setting both is rejected here rather than silently
-		// resolved in favour of one of them.
-		{"management key and token together", testManagementKey, testToken,
-			descope.EnvironmentVariableManagementKey + " and " + EnvironmentVariableWorkloadToken},
-		// the error has to name the variable the bad value actually came from
-		{"bad token", "", "garbage", EnvironmentVariableWorkloadToken},
-		{"bad management key", "garbage", "", descope.EnvironmentVariableManagementKey},
+		{"not set", "", "must be set"},
+		{"management key", testManagementKey, ""},
+		{"workload token", testToken, ""},
+		{"garbage", "garbage", "must be a valid management key or workload token"},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			t.Setenv(descope.EnvironmentVariableManagementKey, tc.mgmtKey)
-			t.Setenv(EnvironmentVariableWorkloadToken, tc.token)
+			t.Setenv(descope.EnvironmentVariableManagementKey, tc.credential)
 			t.Setenv(descope.EnvironmentVariableProjectID, "P2abcdef1234567890")
 			// the credential checks all run before the client is built, so keep the client itself
 			// from reaching the network on the cases that get that far
