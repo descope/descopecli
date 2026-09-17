@@ -8,6 +8,7 @@ import (
 	"github.com/descope/descopecli/audit"
 	"github.com/descope/descopecli/flow"
 	"github.com/descope/descopecli/project"
+	"github.com/descope/descopecli/shared"
 	"github.com/descope/descopecli/tenant"
 	"github.com/descope/descopecli/theme"
 	"github.com/descope/descopecli/user"
@@ -39,6 +40,8 @@ func main() {
 	project.AddCommands(cli, proj)
 	flow.AddCommands(cli, proj)
 	theme.AddCommands(cli, proj)
+
+	shared.Version = version
 
 	if err := cli.Execute(); err != nil {
 		os.Exit(1)
