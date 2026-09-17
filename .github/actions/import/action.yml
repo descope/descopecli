@@ -13,8 +13,11 @@ inputs:
     description: 'The id of the Descope project to import into'
     required: true
   management_key:
-    description: 'The management key for the Descope project'
+    description: 'The management key for the Descope project. With use_oidc it is the id of the management key to assume instead'
     required: true
+  use_oidc:
+    description: 'When true, authenticate with a GitHub OIDC token minted for the management key id instead of a management key secret. Requires the job to grant `id-token: write`'
+    default: false
   secrets:
     description: 'An optional JSON value with additional secrets to inject into the import data'
     default: '[]'
@@ -29,7 +32,7 @@ inputs:
     type: boolean
   descopecli_version:
     description: 'The version of the descope CLI tool to use'
-    default: 'v0.8.14'
+    default: 'v0.9.0'
   descope_base_url:
     description: 'The base URL used to communicate with Descope servers (for troubleshooting purposes)'
 
@@ -51,16 +54,22 @@ runs:
 
     - name: Check State
       shell: bash
+      env:
+        MANAGEMENT_KEY: ${{ inputs.management_key }}
+        USE_OIDC: ${{ inputs.use_oidc }}
       run: |
         echo "Checking action state"
         if [ -z "${{ inputs.project_id }}" ]; then
           echo "The project_id input is required for this action to run"
           exit 1
         fi
-        MANAGEMENT_KEY="$(jq -r '.inputs.management_key' $GITHUB_EVENT_PATH)"
         echo ::add-mask::$MANAGEMENT_KEY
         if [ -z "$MANAGEMENT_KEY" ]; then
           echo "The management_key input is required for this action to run"
+          exit 1
+        fi
+        if [ "$USE_OIDC" = "true" ] && [ ${#MANAGEMENT_KEY} -ge 40 ]; then
+          echo "With use_oidc the management_key input must be a management key id, not a management key"
           exit 1
         fi
         if [ -z "${{ inputs.files_path }}" ]; then
@@ -72,12 +81,28 @@ runs:
           exit 1
         fi
 
+    - name: Request Workload Token
+      if: ${{ inputs.use_oidc == 'true' }}
+      id: wif
+      uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+      env:
+        MANAGEMENT_KEY_ID: ${{ inputs.management_key }}
+        DESCOPE_BASE_URL: ${{ inputs.descope_base_url }}
+      with:
+        script: |
+          const base = (process.env.DESCOPE_BASE_URL || 'https://api.descope.com').replace(/\/$/, '')
+          const audience = `${base}/${process.env.MANAGEMENT_KEY_ID}`
+          core.info(`Requesting a workload token for audience ${audience}`)
+          const token = await core.getIDToken(audience)
+          core.setSecret(token)
+          core.setOutput('token', token)
+
     - name: Validate Snapshot
       if: ${{ !inputs.import_only }}
       id: validate
       shell: bash
       env:
-        DESCOPE_MANAGEMENT_KEY: ${{ inputs.management_key }}
+        DESCOPE_MANAGEMENT_KEY: ${{ inputs.use_oidc == 'true' && steps.wif.outputs.token || inputs.management_key }}
         DESCOPE_BASE_URL: ${{ inputs.descope_base_url }}
       run: |
         echo "Validating snapshot"
@@ -103,7 +128,7 @@ runs:
       if: ${{ !inputs.validate_only }}
       shell: bash
       env:
-        DESCOPE_MANAGEMENT_KEY: ${{ inputs.management_key }}
+        DESCOPE_MANAGEMENT_KEY: ${{ inputs.use_oidc == 'true' && steps.wif.outputs.token || inputs.management_key }}
         DESCOPE_BASE_URL: ${{ inputs.descope_base_url }}
       run: |
         echo "Importing snapshot"

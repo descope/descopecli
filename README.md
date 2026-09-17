@@ -83,20 +83,27 @@ You can build the `descope` command line tool directly with the `go` compiler:
 -   The Descope project's `Project ID` is required by `descope` to know which project
     to work with. You can find it in the [Project section](https://app.descope.com/settings/project)
     in the Descope console.
--   You'll also need a valid Descope management key for the above project. You can create
-    a management key in the [Company section](https://app.descope.com/settings/company) in
-    the Descope console.
+-   You'll also need credentials for the above project, either a management key or a
+    workload identity token. You can create a management key in the
+    [Company section](https://app.descope.com/settings/company) in the Descope console.
 
 ### Usage
 
-All `descope` commands expect the Descope management key to be provided in
-the `DESCOPE_MANAGEMENT_KEY` environment variable. You'll have to provide your
-Descope project's unique id either in the `DESCOPE_PROJECT_ID` environment
-variable or as a command argument, depending on the command.
+All `descope` commands expect a credential in the `DESCOPE_MANAGEMENT_KEY` environment
+variable: either a management key created in the Descope console, or a workload identity
+token for CI jobs that authenticate with the OIDC token they request for themselves rather
+than a stored secret, see [Using a workload identity token](#using-a-workload-identity-token).
+Both are sent to the server the same way, so they share the one variable.
+
+You'll also have to provide your Descope project's unique id either in the
+`DESCOPE_PROJECT_ID` environment variable or as a command argument, depending on the command.
 
 ```bash
 export DESCOPE_PROJECT_ID='P...'
+
+# a management key, or a workload identity token
 export DESCOPE_MANAGEMENT_KEY='K...'
+
 descope --help
 ```
 
@@ -119,6 +126,41 @@ Project Commands:
 Additional Commands:
   completion  Generate the autocompletion script for the specified shell
   help        Help about any command
+```
+
+#### Using a workload identity token
+
+A CI job can authenticate with the short-lived OIDC token it requests for itself instead of
+a stored management key, so there is no secret to leak or rotate.
+
+The token is not a credential on its own. The Management API authorizes it as one specific
+management key, reflecting its configurated roles. That key is named by the token's own 
+`aud` claim, as `https://api.descope.com/<keyId>`.
+
+The issuer must first be registered as a trusted issuer for your company, which creates the
+management key at the same time and returns its id. That configuration decides which
+subjects are accepted.
+
+Set `use_oidc` on the `import` and `export` actions and pass the key id as
+`management_key`. The actions request the token themselves, so the job needs
+`id-token: write`:
+
+```yaml
+permissions:
+  id-token: write
+  contents: read
+
+steps:
+  # the export action writes into the working tree and diffs it, so it needs a checkout
+  - uses: actions/checkout@v4
+
+  - name: Export Snapshot
+    uses: descope/descopecli/.github/actions/export@main
+    with:
+      project_id: ${{ vars.PRODUCTION_PROJECT_ID }}
+      management_key: ${{ vars.DESCOPE_MANAGEMENT_KEY_ID }}
+      use_oidc: true
+      files_path: ./descope_export
 ```
 
 <br/>
