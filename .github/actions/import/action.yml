@@ -90,8 +90,7 @@ runs:
         DESCOPE_BASE_URL: ${{ inputs.descope_base_url }}
       with:
         script: |
-          const base = (process.env.DESCOPE_BASE_URL || 'https://api.descope.com').replace(/\/$/, '')
-          const audience = `${base}/${process.env.MANAGEMENT_KEY_ID}`
+          const audience = `https://api.descope.com/${process.env.MANAGEMENT_KEY_ID}`
           core.info(`Requesting a workload token for audience ${audience}`)
           const token = await core.getIDToken(audience)
           core.setSecret(token)
