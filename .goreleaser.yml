@@ -57,19 +57,8 @@ dockers_v2:
 
 signs:
   - cmd: cosign
-    signature: "${artifact}.sig"
-    certificate: "${artifact}.pem"
-    args:
-      [
-        "sign-blob",
-        "--output-signature",
-        "${artifact}.sig",
-        "--output-certificate",
-        "${artifact}.pem",
-        "--bundle",
-        "${artifact}.bundle",
-        "${artifact}",
-      ]
+    signature: "${artifact}.sigstore.json"
+    args: ["sign-blob", "--bundle=${signature}", "${artifact}", "--yes"]
     artifacts: binary
 
 docker_signs:
