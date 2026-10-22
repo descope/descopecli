@@ -27,7 +27,7 @@ jobs:
           go-version-file: go.mod
       - uses: sigstore/cosign-installer@cad07c2e89fa2edd6e2d7bab4c1aa38e53f76003 # v4.1.1
         with:
-          cosign-release: v3.0.5
+          cosign-release: v3.1.3
       - name: Login to GitHub Container Registry
         uses: docker/login-action@4907a6ddec9925e35a0a9e82d7399ccc52663121 # v4.1.0
         with:
