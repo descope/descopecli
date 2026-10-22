@@ -1,6 +1,6 @@
 module github.com/descope/descopecli
 
-go 1.26.1
+go 1.26.10
 
 require (
 	github.com/descope/go-sdk v1.19.0
