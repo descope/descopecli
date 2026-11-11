@@ -30,6 +30,14 @@ The `descope` command line tool provides a convenient way to perform common task
 
 The `descope` tool is available as a downloadable binary from the [releases page](https://github.com/descope/descopecli/releases/latest).
 
+### macOS and Linux (Homebrew)
+
+Install `descope` using [Homebrew](https://brew.sh):
+
+```bash
+brew install descope
+```
+
 ### Debian/Ubuntu
 
 Install `descope` using APT:
