@@ -76,7 +76,7 @@ jobs:
     concurrency:
       group: "packages"
       cancel-in-progress: false # we want to avoid conflicts in git push
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04 # apt-key, used below, was removed in ubuntu-26.04
     steps:
       - name: Generate GitHub App Token
         id: app-token
