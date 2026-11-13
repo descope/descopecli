@@ -3,6 +3,7 @@ package shared
 import (
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/descope/go-sdk/descope"
 )
@@ -60,6 +61,33 @@ func TestManagementKeyEnvironmentVariable(t *testing.T) {
 				t.Errorf("expected an error mentioning %q, got none", tc.errContains)
 			case tc.errContains != "" && !strings.Contains(err.Error(), tc.errContains):
 				t.Errorf("error %q does not mention %q", err, tc.errContains)
+			}
+		})
+	}
+}
+
+func TestRequestTimeout(t *testing.T) {
+	for _, tc := range []struct {
+		name    string
+		value   string
+		want    time.Duration
+		wantErr bool
+	}{
+		{"unset keeps sdk default", "", 0, false},
+		{"seconds", "300s", 300 * time.Second, false},
+		{"minutes", "10m", 10 * time.Minute, false},
+		{"bare number", "300", 0, true},
+		{"zero", "0s", 0, true},
+		{"negative", "-1m", 0, true},
+		{"garbage", "soon", 0, true},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			got, err := requestTimeout(tc.value)
+			if (err != nil) != tc.wantErr {
+				t.Fatalf("requestTimeout(%q) error = %v, wantErr %v", tc.value, err, tc.wantErr)
+			}
+			if got != tc.want {
+				t.Errorf("requestTimeout(%q) = %v, want %v", tc.value, got, tc.want)
 			}
 		})
 	}

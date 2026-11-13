@@ -4,6 +4,7 @@ import (
 	"errors"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/descope/go-sdk/descope"
 	"github.com/descope/go-sdk/descope/client"
@@ -13,6 +14,10 @@ import (
 var Descope *client.DescopeClient
 
 var Version = "" // set by main.go
+
+// EnvironmentVariableRequestTimeout overrides the HTTP request timeout (Go duration, e.g. "10m").
+// Long-running calls such as a large project snapshot import can exceed the SDK's 60s default.
+const EnvironmentVariableRequestTimeout = "DESCOPE_REQUEST_TIMEOUT"
 
 func DefaultPreRun(cmd *cobra.Command, args []string) (err error) {
 	cmd.SilenceUsage = true
@@ -51,6 +56,12 @@ func createDescopeClient(args []string, company bool, project bool) (*client.Des
 		},
 	}
 
+	timeout, err := requestTimeout(os.Getenv(EnvironmentVariableRequestTimeout))
+	if err != nil {
+		return nil, err
+	}
+	config.RequestTimeout = timeout
+
 	if config.ManagementKey == "" {
 		return nil, errors.New("the " + descope.EnvironmentVariableManagementKey + " environment variable must be set")
 	}
@@ -84,4 +95,16 @@ func createDescopeClient(args []string, company bool, project bool) (*client.Des
 // which credential it got and whether it is trusted.
 func isValidManagementCredential(key string) bool {
 	return strings.HasPrefix(key, "K") || strings.Count(key, ".") == 2
+}
+
+// requestTimeout parses the request timeout override; empty keeps the SDK default.
+func requestTimeout(value string) (time.Duration, error) {
+	if value == "" {
+		return 0, nil
+	}
+	timeout, err := time.ParseDuration(value)
+	if err != nil || timeout <= 0 {
+		return 0, errors.New("the " + EnvironmentVariableRequestTimeout + " environment variable must be a positive duration such as 300s or 10m")
+	}
+	return timeout, nil
 }
