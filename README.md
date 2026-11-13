@@ -115,6 +115,16 @@ export DESCOPE_MANAGEMENT_KEY='K...'
 descope --help
 ```
 
+Requests time out after 60 seconds by default. Long-running commands, such as importing a
+large project snapshot, can override this with the `DESCOPE_REQUEST_TIMEOUT` environment
+variable, set to a duration such as `300s` or `10m`:
+
+```bash
+DESCOPE_REQUEST_TIMEOUT=10m descope project snapshot import P... --path ./snapshot
+```
+
+Note that a proxy in front of the API, such as Cloudflare, may still end the request sooner.
+
 ```
 A command line utility for working with the Descope management APIs
 
